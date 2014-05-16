@@ -1,48 +1,14 @@
-#include "ForwardIndex.h"
-#include "Commmon.h"
+#include "search_forward_index.h"
+#include "search_util.h"
 
-
-ForwardIndex::ForwardIndex(void)
+Search_Forward_Index::Search_Forward_Index(void)
 {
 
 }
 
 
-ForwardIndex::~ForwardIndex(void)
+Search_Forward_Index::~Search_Forward_Index(void)
 {
 }
 
-int ForwardIndex::load_index()
-{
 
-	return 0;
-}
-
-
-/*
-**Êý¾Ý  id  path          
-**×Ö½Ú:  4  len+path   
-** 
-**/
-int ForwardIndex::save_index()
-{
-	FILE* file=fopen("","wb");
-	if ( file!=NULL )
-	{
-		std::list<Document*>::iterator iter=m_documents.begin();
-		for ( ; iter!=m_documents.end() ; ++iter )
-		{
-			iter->doc_id  
-		}
-		
-		fclose(file);
-	}
-
-	return 0;
-}
-
-int ForwardIndex::add_doc( Document* doc )
-{
-	m_documents.push_back(doc);
-	return 0;
-}

@@ -6,30 +6,60 @@
 #include <hash_map>
 #include <list>
 
-struct Word
-{
-	int  word_id;  
-	std::string word;
-	std::vector<int> positions;
-};
+#include "search_define.h"
+#include "search_forward_index.h"
 
-struct Document
-{
-	int  doc_id;
-	std::string doc_file_path;
-	std::map<int,Word*> words;
-};
 
-class ParseDocument
+
+class Search_Parser
 {
 public:
-	ParseDocument(void);
-	~ParseDocument(void);
+	Search_Parser(){ m_document=NULL; };
+	virtual ~Search_Parser(){};
 
-	int Parse(const char* filepath);
+	virtual int Parse(const char* filepath)=0;
+	virtual DocumentIndex* get_document(){ return m_document;};
+
+protected:
+	DocumentIndex* m_document;
+};
+
+
+class Search_English_Parser: public Search_Parser
+{
+public:
+	Search_English_Parser(void){};
+	virtual ~Search_English_Parser(void){};
+
+	virtual int Parse(const char* filepath);
 
 private:
 	int  get_next_word( const char* line, char* word,  int* length );
 	
 };
 
+class Search_UTF8_Parser: public Search_Parser
+{
+public:
+	Search_UTF8_Parser(void){};
+	virtual ~Search_UTF8_Parser(void){};
+
+	virtual int Parse(const char* filepath);
+
+private:
+	int  get_next_word( const char* line, char* word,  int* length );
+
+};
+
+class Search_GBK_Parser: public Search_Parser
+{
+public:
+	Search_GBK_Parser(void){};
+	virtual ~Search_GBK_Parser(void){};
+
+	virtual int Parse(const char* filepath);
+
+private:
+	int  get_next_word( const char* line, char* word,  int* length );
+
+};

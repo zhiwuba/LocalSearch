@@ -200,9 +200,9 @@ int Search_MD5::get_file_md5( const char* filepath, char* filemd5 )
 	return 0;
 }
 
-int Search_MD5::get_file_md5_code( const char* filepath ,int max )
+uint Search_MD5::get_file_md5_code( const char* filepath ,uint max )
 {
-	int code=0;
+	uint code=0;
 	MD5_CTX md5;
 	MD5Init(&md5);
 
@@ -227,7 +227,7 @@ int Search_MD5::get_file_md5_code( const char* filepath ,int max )
 	return code;
 }
 
-int Search_MD5::get_buffer_md5_code( const char* buffer ,int length, int max )
+uint Search_MD5::get_buffer_md5_code( const char* buffer ,int length, uint max )
 {
 	MD5_CTX md5;
 	MD5Init(&md5);
@@ -235,7 +235,7 @@ int Search_MD5::get_buffer_md5_code( const char* buffer ,int length, int max )
 	unsigned char digest[16]={0};
 	MD5Final(&md5, digest);
 
-	int code=md5.state[1]%max ;//(md5.state[1]^md5.state[2]^md5.state[3]^md5.state[4])%max;
+	uint code=md5.state[1]; //(md5.state[1]^md5.state[2]^md5.state[3]^md5.state[4])%max;
 
 	return code;
 }

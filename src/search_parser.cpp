@@ -5,23 +5,15 @@
 #include "search_util.h"
 #include "search_define.h"
 
-
-ParseDocument::ParseDocument(void)
-{
-}
-
-ParseDocument::~ParseDocument(void)
-{
-}
-
-int ParseDocument::Parse( const char* filepath )
+////////////////////////////////////////////
+int Search_English_Parser::Parse( const char* filepath )
 {
 	char md5[33]={0};
-	int doc_id=Search_MD5::get_file_md5_code(filepath,kMaxDocID);
+	uint doc_id=Search_MD5::get_file_md5_code(filepath,kMaxDocID);
 
-	Document* document=new Document();
-	document->doc_file_path=filepath;
-	document->doc_id=doc_id;
+	m_document=new DocumentIndex();
+	m_document->doc_file_path=filepath;
+	m_document->doc_id=doc_id;
 
 	FILE* file=fopen(filepath,"r");
 	if ( file!=NULL )
@@ -42,12 +34,12 @@ int ParseDocument::Parse( const char* filepath )
 					int ptr_move_len=get_next_word(buffer+line_pos, cword ,&word_len);
 					line_pos+=ptr_move_len;
 					file_read_pos+=ptr_move_len;
-					if ( word_len >1 )
+					if ( word_len >3 )
 					{
-						int word_id=Search_MD5::get_buffer_md5_code(cword, word_len, kMaxWordID);
-
-						std::map<int,Word*>::iterator iter2=document->words.find(word_id);
-						if ( iter2!=document->words.end() )
+						string_to_lower(cword);
+						uint word_id=Search_MD5::get_buffer_md5_code(cword, word_len, kMaxWordID);
+						std::map<uint,Word*>::iterator iter2=m_document->words.find(word_id);
+						if ( iter2!=m_document->words.end() )
 						{
 							if ( iter2->second->word.compare(cword)!=0 )
 							{
@@ -61,7 +53,7 @@ int ParseDocument::Parse( const char* filepath )
 							word->word_id=word_id;
 							word->word=cword;
 							word->positions.push_back(file_read_pos);
-							document->words[word_id]=word;
+							m_document->words[word_id]=word;
 						}
 					}
 				}
@@ -73,7 +65,7 @@ int ParseDocument::Parse( const char* filepath )
 	return 0;
 }
 
-int ParseDocument::get_next_word( const char* line, char* word,  int* length )
+int Search_English_Parser::get_next_word( const char* line, char* word,  int* length )
 {
 	const char* p=line;
 	while (!is_alpha_char(*p)&&*p!='\n')++p;
@@ -91,3 +83,24 @@ int ParseDocument::get_next_word( const char* line, char* word,  int* length )
 	return end-line+1;
 }
 
+/////////////////////////////////////////////////////////
+int Search_UTF8_Parser::Parse( const char* filepath )
+{
+	return 0;
+}
+
+int Search_UTF8_Parser::get_next_word( const char* line, char* word, int* length )
+{
+	return 0;
+}
+
+////////////////////////////////////////////////////////
+int Search_GBK_Parser::Parse( const char* filepath )
+{
+	return 0;
+}
+
+int Search_GBK_Parser::get_next_word( const char* line, char* word, int* length )
+{
+	return 0;
+}

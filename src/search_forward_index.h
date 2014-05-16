@@ -1,39 +1,15 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <map>
-#include <hash_map>
-#include <list>
+#include "search_define.h"
+#include "search_index_struct.h"
 
-struct Word
-{
-	int  word_id;  
-	std::string word;
-	std::vector<int> positions;
-};
 
-struct Document
-{
-	int  doc_id;
-	std::string doc_file_path;
-	std::map<int,Word*> words;
-};
-
-class ForwardIndex
+class Search_Forward_Index
 {
 public:
-	ForwardIndex(void);
-	~ForwardIndex(void);
+	Search_Forward_Index(void);
+	~Search_Forward_Index(void);
 	
-	int load_index();
-
-	int add_doc(Document* doc);
-
-	int save_index();
-
-private:
-	std::list<Document*> m_documents;
 
 };
 

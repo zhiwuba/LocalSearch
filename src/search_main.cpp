@@ -5,25 +5,25 @@
 
 #include "search_md5.h"
 #include "search_parser.h"
+#include "search_util.h"
+#include "search_forward_index.h"
+#include "search_inverted_index.h"
 
 int main()
 {
-	//int code=Search_MD5::get_buffer_md5_code("then", 3, 1000*1000);
-	//printf("code is %d \n", code);
-
 	long startTime=GetTickCount();
-	ParseDocument parser;
-	parser.Parse("H:\\Workspace\\sqlite\\sqlite-autoconf-3080200\\sqlite3.c");
-	parser.Parse("H:\\Workspace\\LocalSearch\\msvc\\A_Game_of_Thrones.txt");
-	parser.Parse("H:\\Workspace\\LocalSearch\\msvc\\The_English_Patient.txt");
+	Search_English_Parser parser;
+	Search_Inverted_Index index;
 
+	parser.Parse("D:\\Workspace\\LocalSearch\\msvc\\Data\\A_Game_of_Thrones.txt");
+	index.add_doc(parser.get_document());
+	parser.Parse("D:\\Workspace\\LocalSearch\\msvc\\Data\\The_English_Patient.txt");
+	index.add_doc(parser.get_document());
+
+	index.save_index();
 
 	long costTime=GetTickCount()-startTime;
-
 	printf("cost time : %d \n", costTime);
 	return 0;
 }
-
-
-
 

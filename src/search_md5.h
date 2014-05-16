@@ -1,6 +1,8 @@
 #ifndef   _FILE_MD5_H_
 #define  _FILE_MD5_H_
 
+#include "search_define.h"
+
 typedef struct
 {
 	unsigned int count[2];
@@ -54,9 +56,9 @@ class Search_MD5
 public:
 	static int get_file_md5(const char* filepath, char* filemd5 );
 	
-	static int get_file_md5_code(const char* filepath, int max);
+	static uint get_file_md5_code(const char* filepath, uint max);
 	
-	static int get_buffer_md5_code(const char* buffer, int length, int max);
+	static uint get_buffer_md5_code(const char* buffer, int length, uint max);
 
 };
 
