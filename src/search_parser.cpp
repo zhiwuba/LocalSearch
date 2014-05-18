@@ -14,6 +14,7 @@ int Search_English_Parser::Parse( const char* filepath )
 	m_document=new DocumentIndex();
 	m_document->doc_file_path=filepath;
 	m_document->doc_id=doc_id;
+	g_DocId.add_document(doc_id , filepath);
 
 	FILE* file=fopen(filepath,"r");
 	if ( file!=NULL )
@@ -54,6 +55,7 @@ int Search_English_Parser::Parse( const char* filepath )
 							word->word=cword;
 							word->positions.push_back(file_read_pos);
 							m_document->words[word_id]=word;
+							g_WordId.add_word(word_id, cword);
 						}
 					}
 				}

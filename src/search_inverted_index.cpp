@@ -48,7 +48,7 @@ int Search_Inverted_Index::build_index( DocumentIndex* doc )
 
 int Search_Inverted_Index::save_index()
 {
-	FILE* file=fopen("D:\\Workspace\\LocalSearch\\msvc\\Data\\search.index","wb");
+	FILE* file=fopen("H:\\Workspace\\LocalSearch\\msvc\\Data\\search.index","wb");
 	if ( file!=NULL )
 	{
 		std::map<uint, WordIndex*>::iterator iter = m_words.begin();
@@ -78,6 +78,22 @@ int Search_Inverted_Index::save_index()
 		fclose(file);
 	}
 
+	return 0;
+}
+
+int Search_Inverted_Index::query_word( int word_id, std::set<uint>& doc_id_set )
+{
+	doc_id_set.clear();
+	std::map<uint, WordIndex*>::iterator iter=m_words.find(word_id);
+	if ( iter!=m_words.end() )
+	{
+		WordIndex* word_index=iter->second;
+		std::map<uint, Word*>::iterator iter2=word_index->documents.begin();
+		for ( ; iter2!=word_index->documents.end() ; ++iter2 )
+		{
+			doc_id_set.insert(iter2->first);
+		}
+	}
 	return 0;
 }
 

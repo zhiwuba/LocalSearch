@@ -7,7 +7,7 @@
 #include <list>
 
 #include "search_define.h"
-#include "search_forward_index.h"
+#include "search_doc_word.h"
 
 
 
