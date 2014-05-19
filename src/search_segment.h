@@ -1,19 +1,19 @@
 #ifndef  __SEARCH_DEVIDE_WORD_H__
 #define __SEARCH_DEVIDE_WORD_H__
 
-/*
-** ·Ö´Ê
-**/
 
-class Search_Devide_Word
+
+class Search_Segment
 {
 public:
-	Search_Devide_Word();
-	~Search_Devide_Word();
+	Search_Segment();
+	~Search_Segment();
 
+
+	int test();
 
 private:
-	     
+	
 
 };
 

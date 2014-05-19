@@ -39,6 +39,9 @@
     <ClCompile Include="..\src\search_doc_word.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\search_crawl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\search_md5.h">
@@ -63,6 +66,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\src\search_doc_word.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_crawl.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

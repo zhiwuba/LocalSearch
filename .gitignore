@@ -19,3 +19,4 @@
 *.exe
 *.out
 *.app
+/3rd/mmseg-0.7.3

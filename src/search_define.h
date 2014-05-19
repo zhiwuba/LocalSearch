@@ -8,4 +8,6 @@ const int kMaxWordID=12121212;
 typedef unsigned int  uint;
 typedef unsigned char uchar;
 
+typedef unsigned __int64  uint64_t;
+
 #endif

@@ -19,6 +19,7 @@ struct Word
 struct DocumentIndex
 {
 	uint  doc_id;
+	uint  word_count;
 	std::string doc_file_path;
 	std::map<uint,Word*> words;  //word_id<---->Word
 };
@@ -62,12 +63,19 @@ public:
 
 	~Search_DocID();
 
-	bool  add_document(uint doc_id, std::string document);
-	std::string get_document(uint doc_id);
-
+	bool  add_document(uint doc_id, std::string document, uint word_count);
+	std::string get_doc_path(uint doc_id);
+	uint          get_doc_word_count(uint doc_id);
 private:
 	Search_DocID();
-	std::map<uint, std::string> m_documents;
+
+	struct DocInfo
+	{
+		std::string file_path;
+		uint          word_count;
+	};
+
+	std::map<uint, DocInfo*> m_documents;
 };
 
 #endif

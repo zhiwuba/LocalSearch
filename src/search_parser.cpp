@@ -11,14 +11,14 @@ int Search_English_Parser::Parse( const char* filepath )
 	char md5[33]={0};
 	uint doc_id=Search_MD5::get_file_md5_code(filepath,kMaxDocID);
 
-	m_document=new DocumentIndex();
-	m_document->doc_file_path=filepath;
-	m_document->doc_id=doc_id;
-	g_DocId.add_document(doc_id , filepath);
-
 	FILE* file=fopen(filepath,"r");
 	if ( file!=NULL )
 	{
+		m_document=new DocumentIndex();
+		m_document->doc_file_path=filepath;
+		m_document->doc_id=doc_id;
+
+		uint word_count=0;
 		int  file_read_pos=0;
 		while ( !feof(file) )
 		{
@@ -37,6 +37,7 @@ int Search_English_Parser::Parse( const char* filepath )
 					file_read_pos+=ptr_move_len;
 					if ( word_len >3 )
 					{
+						word_count++;
 						string_to_lower(cword);
 						uint word_id=Search_MD5::get_buffer_md5_code(cword, word_len, kMaxWordID);
 						std::map<uint,Word*>::iterator iter2=m_document->words.find(word_id);
@@ -62,6 +63,8 @@ int Search_English_Parser::Parse( const char* filepath )
 			}
 		}
 		fclose(file);
+		
+		g_DocId.add_document(doc_id , filepath, word_count);
 	}
 
 	return 0;

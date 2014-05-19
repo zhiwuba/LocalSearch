@@ -34,14 +34,31 @@ Search_DocID::~Search_DocID()
 
 }
 
-
-std::string Search_DocID::get_document( uint doc_id )
+std::string Search_DocID::get_doc_path( uint doc_id )
 {
-	return m_documents[doc_id];
+	std::map<uint, DocInfo*>::iterator iter= m_documents.find(doc_id);
+	if ( iter!=m_documents.end() )
+	{
+		return iter->second->file_path;
+	}
+	return "";
 }
 
-bool Search_DocID::add_document( uint doc_id, std::string document )
+bool Search_DocID::add_document( uint doc_id, std::string document, uint word_count )
 {
-	m_documents[doc_id]=document;
+	DocInfo* doc_info=new DocInfo();
+	doc_info->file_path=document;
+	doc_info->word_count=word_count;
+	m_documents[doc_id]=doc_info;
 	return true;
+}
+
+uint Search_DocID::get_doc_word_count( uint doc_id )
+{
+ 	std::map<uint, DocInfo*>::iterator iter= m_documents.find(doc_id);
+	if ( iter!=m_documents.end() )
+	{
+		return iter->second->word_count;
+	}
+	return 0;
 }
