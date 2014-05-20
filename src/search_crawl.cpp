@@ -10,7 +10,7 @@
 
 #include "search_crawl.h"
 #include "search_parser.h"
-#include "search_inverted_index.h"
+#include "search_index.h"
 
 Search_Crawl::Search_Crawl()
 {
@@ -24,22 +24,22 @@ Search_Crawl::~Search_Crawl()
 
 int Search_Crawl::traverse_directory( const char* directory )
 {
-	Search_English_Parser parser;
-
 #ifdef  WIN32
 	assert(directory!=NULL);
-	char file_path[1024];
-	sprintf(file_path,"%s\\*.txt", directory);
+	char file_regex[1024]; //正则
+	char file_dir[1024];     //结果
+	sprintf(file_regex,"%s\\*.txt", directory);
 
-	WIN32_FIND_DATA find_data;  //记录文件信息
-	HANDLE handle=::FindFirstFile(file_path,&find_data);
+	WIN32_FIND_DATA find_data;
+	HANDLE handle=::FindFirstFile(file_regex,&find_data);
 	if ( handle==INVALID_HANDLE_VALUE )
 	{
 		return -1;
 	}
 
-	parser.Parse("D:\\Workspace\\LocalSearch\\msvc\\Data\\A_Game_of_Thrones.txt");
-	g_Inverted_Index.add_doc(parser.get_document());
+	sprintf(file_dir, "%s\\%s", directory, find_data.cFileName );
+	g_Parser.Parse(file_dir);
+	g_Inverted_Index.add_doc(g_Parser.get_document());
 
 	std::cout<<directory<<"\\"<<find_data.cFileName<<std::endl;
 	while (::FindNextFile(handle, &find_data))
@@ -52,18 +52,20 @@ int Search_Crawl::traverse_directory( const char* directory )
 		if ( find_data.dwFileAttributes==FILE_ATTRIBUTE_DIRECTORY )
 		{
 			char child_path[1024];
-			sprintf(child_path,"%s\\%s", file_path, find_data.cFileName);
+			sprintf(child_path,"%s\\%s\\*.txt", directory, find_data.cFileName);
 			traverse_directory(child_path);
 		}
 		else
 		{
-			std::cout<<directory<<"\\"<<find_data.cFileName<<std::endl;
+			sprintf(file_dir, "%s\\%s", directory, find_data.cFileName );
+			g_Parser.Parse(file_dir);
+			g_Inverted_Index.add_doc(g_Parser.get_document());
 		}
 	}
 	FindClose(handle);
-	return 0;
 #endif //  WIN32
 
+	return 0;
 }
 
 

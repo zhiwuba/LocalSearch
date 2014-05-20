@@ -24,9 +24,11 @@ public:
 private:
 	Search_Query();
 
-	//TFIDF+CosineLaw 
+	/*
+	** TFIDF算法+余弦定理 求文档相似度
+	**/
 	float  get_similarity(PairVec& query_vec, std::set<uint>& doc_list , std::vector<QueryPair>& result_vec );
-
+	int     build_query_vec(std::string& question, PairVec& query_vec);
 };
 
 

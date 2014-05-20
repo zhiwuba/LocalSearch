@@ -1,6 +1,7 @@
 #include <math.h>
+#include <assert.h>
 
-#include "search_inverted_index.h"
+#include "search_index.h"
 
 
 Search_Inverted_Index::Search_Inverted_Index(void)
@@ -52,7 +53,8 @@ int Search_Inverted_Index::build_index( DocumentIndex* doc )
 
 int Search_Inverted_Index::save_index()
 {
-	FILE* file=fopen("H:\\Workspace\\LocalSearch\\msvc\\Data\\search.index","wb");
+	std::string index_save_path=get_core_path()+"\\search.index";
+	FILE* file=fopen( index_save_path.c_str(),"wb");
 	if ( file!=NULL )
 	{
 		std::map<uint, WordIndex*>::iterator iter = m_words.begin();
@@ -135,3 +137,44 @@ int Search_Inverted_Index::get_doc_total_word_count(uint doc_id)
 {
 	return g_DocId.get_doc_word_count(doc_id);
 }
+
+
+
+////////////////////////////////////////////////////////////////
+/*
+**  词的索引表
+**  WorldID  nDocs  Offset 
+**
+**  文档结合的索引表
+**  DocId    NHits     HitList
+**/
+
+
+int Search_Index_File::load_word_index()
+{
+
+}
+
+int Search_Index_File::save_word_index()
+{
+
+}
+
+int Search_Index_File::zipper_merge( const char* dest_index, const char* source_index )
+{
+	std::string temp_file_path=get_core_path()+"\\temp.dat";
+	assert(dest_index!=NULL&&source_index!=NULL);
+	FILE* dest_file=fopen(dest_index,"rb");
+	FILE* source_file=fopen(source_index,"rb");
+	FILE* temp_file=fopen(temp_file_path.c_str(), "wb");
+	assert(dest_file!=NULL&&source_file!=NULL&&temp_file!=NULL);
+
+
+
+
+
+
+
+	return 0;
+}
+

@@ -7,6 +7,9 @@
 #include "search_util.h"
 #include "search_doc_word.h"
 
+#define kWordIndexFileName "word.dat"
+#define kIndexFileName "Search.dat"
+
 #define g_Inverted_Index  Search_Inverted_Index::instance()
 
 class Search_Inverted_Index
@@ -43,6 +46,24 @@ private:
 
 	uint64_t m_docs_count;
 };
+
+
+class Search_Index_File
+{
+public:
+	Search_Index_File(){};
+	~Search_Index_File(){};
+
+
+	int zipper_merge(const char* dest_index, const char* source_index);
+
+private:
+	int load_word_index(); 
+	int save_word_index();
+	std::map<uint, uint64_t> m_word_pos;
+};
+
+
 
 
 #endif

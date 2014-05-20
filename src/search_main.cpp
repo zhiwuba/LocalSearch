@@ -2,22 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
+#include <iostream>
 
 #include "search_md5.h"
 #include "search_parser.h"
 #include "search_util.h"
-#include "search_inverted_index.h"
+#include "search_index.h"
 #include "search_query.h"
 #include "search_crawl.h"
 #include "search_segment.h"
 
 int main()
 {
-	Search_Segment segment;
-	segment.test();
-
-
-#if 0
+#if 1
 	long startTime=GetTickCount();
 	g_Crawl.traverse_directory("D:\\Workspace\\LocalSearch\\msvc\\Data");
 	long costTime=GetTickCount()-startTime;
@@ -28,10 +25,20 @@ int main()
 	costTime=GetTickCount()-startTime;
 	printf("save index cost time : %d \n", costTime);
 
-	startTime=GetTickCount();
-	g_Query.query("english patient");
-	costTime=GetTickCount()-startTime;
-	printf("query cost time : %d \n", costTime);
+	
+
+	bool exit_flag=false;
+	while ( !exit_flag )
+	{
+		std::string query;
+		std::cout<<"====ÇëÊäÈë²éÑ¯´Ê£º"<<std::endl;
+		std::cin>>query;
+		startTime=GetTickCount();
+		g_Query.query(query);
+		costTime=GetTickCount()-startTime;
+		printf("query cost time : %d \n", costTime);
+	}
+
 #endif
 
 	return 0;
