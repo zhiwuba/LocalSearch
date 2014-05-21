@@ -222,14 +222,26 @@ int Search_Index_File::zipper_merge( Search_Index_File* dest_index, Search_Index
 		}
 	}
 
-	if ( dest_iter!=dest_index->m_word_pos.end()  )
+	while ( dest_iter!=dest_index->m_word_pos.end()  )
 	{
-		
+		WordData data;
+		data.start_offset=cur_pos;
+		data.doc_count=dest_iter->second.doc_count;
+		/* 写文件 */
+		int len=dest_iter->second.end_offset - dest_iter->second.start_offset;
+		ADD_WORD_DATA(dest_doc_index_file,len,dest_iter);
+		++dest_iter;
 	}
 
-	if ( src_iter!=src_index->m_word_pos.end()  )
+	while ( src_iter!=src_index->m_word_pos.end()  )
 	{
-		
+		WordData data;
+		data.start_offset=cur_pos;
+		data.doc_count=src_iter->second.doc_count;
+		/* 写文件 */
+		int len=src_iter->second.end_offset-src_iter->second.start_offset;
+		ADD_WORD_DATA(src_doc_index_file,len,src_iter);
+		++src_iter;
 	}
 
 	fclose(dest_doc_index_file);
