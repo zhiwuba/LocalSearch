@@ -27,9 +27,6 @@
     <ClCompile Include="..\src\search_util.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\search_inverted_index.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\search_query.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -40,6 +37,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\src\search_crawl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_index.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,9 +56,6 @@
     <ClInclude Include="..\src\search_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\search_inverted_index.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\search_query.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -69,6 +66,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\src\search_crawl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_index.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

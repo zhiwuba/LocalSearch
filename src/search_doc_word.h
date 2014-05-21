@@ -25,7 +25,7 @@ struct DocumentIndex
 };
 
 
-struct   WordIndex
+struct WordIndex
 {
 	uint word_id;
 	std::string word;
@@ -65,7 +65,8 @@ public:
 
 	bool  add_document(uint doc_id, std::string document, uint word_count);
 	std::string get_doc_path(uint doc_id);
-	uint          get_doc_word_count(uint doc_id);
+	uint          get_doc_total_word_count(uint doc_id);
+	uint64_t    get_doc_count(){return m_docs_count;};
 private:
 	Search_DocID();
 
@@ -75,6 +76,7 @@ private:
 		uint          word_count;
 	};
 
+	uint64_t m_docs_count;
 	std::map<uint, DocInfo*> m_documents;
 };
 

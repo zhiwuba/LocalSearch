@@ -89,6 +89,26 @@ void variable_byte_decode( uchar* buffer, int len ,std::vector<uint>& arrays )
 	}
 }
 
+void compress_data( std::vector<uint>& arrays, uchar** buffer, int* length )
+{
+	for ( int i=arrays.size()-1; i>=1 ; --i )
+	{
+		arrays[i]-=arrays[i-1];
+	}
+	variable_byte_encode(arrays, buffer, length);
+}
+
+void decompress_data( uchar* buffer, int len, std::vector<uint>& arrays )
+{
+	variable_byte_decode(buffer,len, arrays);
+
+	for ( int i=1; i<arrays.size() ;i++ )
+	{
+		arrays[i]+=arrays[i-1];
+	}
+}
+
+
 std::string get_core_path()
 {
 	std::string core_path;

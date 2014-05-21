@@ -26,7 +26,7 @@ bool Search_WordId::add_word( uint word_id, std::string word )
 
 Search_DocID::Search_DocID()
 {
-
+	m_docs_count=0;
 }
 
 Search_DocID::~Search_DocID()
@@ -50,10 +50,11 @@ bool Search_DocID::add_document( uint doc_id, std::string document, uint word_co
 	doc_info->file_path=document;
 	doc_info->word_count=word_count;
 	m_documents[doc_id]=doc_info;
+	m_docs_count++;
 	return true;
 }
 
-uint Search_DocID::get_doc_word_count( uint doc_id )
+uint Search_DocID::get_doc_total_word_count( uint doc_id )
 {
  	std::map<uint, DocInfo*>::iterator iter= m_documents.find(doc_id);
 	if ( iter!=m_documents.end() )

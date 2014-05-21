@@ -24,6 +24,15 @@ void variable_byte_encode(std::vector<uint>& arrays ,uchar** buffer ,int* length
 **/
 void variable_byte_decode(uchar* buffer, int len ,std::vector<uint>& arrays );
 
+/*
+**  数据编码-- 差分序列+变长
+**/
+void compress_data(std::vector<uint>& arrays, uchar** buffer, int* length);
+
+/*
+**  数据解码-- 差分序列+变长
+**/
+void decompress_data(uchar* buffer, int len, std::vector<uint>& arrays );
 
 /*
 **  获取程序当前路径

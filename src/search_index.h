@@ -8,11 +8,45 @@
 #include "search_doc_word.h"
 
 #define kWordIndexFileName "word.dat"
-#define kIndexFileName "Search.dat"
+#define kDocFileName "doc.dat"
+
+/*
+**   临时倒排文件
+**/
+class Search_Index_File
+{
+public:
+	Search_Index_File();
+	virtual ~Search_Index_File();
+
+	void set_word_index_file_path(std::string& path){ m_word_index_file_path=path;};
+	void set_doc_index_file_path(std::string& path){ m_doc_index_file_path=path;};
+	std::string get_word_index_file_path(){return m_word_index_file_path;};
+	std::string get_doc_index_file_path(){return m_doc_index_file_path;};
+
+	virtual int load_word_index();
+	virtual int save_word_index();
+
+
+	int zipper_merge(Search_Index_File* dest_index, Search_Index_File* source_index);
+
+public:	
+	struct WordData
+	{
+		uint       doc_count;
+		uint64_t start_offset;
+		uint64_t end_offset;
+	};
+	std::map<uint, WordData> m_word_pos;
+
+	std::string   m_word_index_file_path;
+	std::string   m_doc_index_file_path;
+};
+
+
 
 #define g_Inverted_Index  Search_Inverted_Index::instance()
-
-class Search_Inverted_Index
+class Search_Inverted_Index:public Search_Index_File
 {
 public:
 	Search_Inverted_Index(void);
@@ -28,6 +62,45 @@ public:
 	
 	int save_index();
 
+private:
+
+	int build_index(DocumentIndex* doc);
+
+	std::map<uint, WordIndex*>  m_words;  //倒排表
+
+	std::list<DocumentIndex*>  m_documents;  //正排表
+	
+};
+
+class Search_Index_File_Manager
+{
+public:
+	Search_Index_File_Manager(){};
+	~Search_Index_File_Manager(){};
+
+	int zipper_merge(Search_Index_File* dest_index, Search_Index_File* source_index);
+
+private:
+
+};
+
+
+#define  g_Index_Query  Search_Index::instance()
+class Search_Index:public Search_Index_File
+{
+public:
+	static Search_Index& instance()
+	{
+		static Search_Index _instance;
+		return _instance;
+	}
+	~Search_Index(){};
+
+	int initialize();
+
+	/**
+	***  查询
+	**/
 	int query_word(int word_id, std::set<uint>& doc_id_set);
 
 	float get_word_IDF(int word_id);  //逆文档频率
@@ -37,33 +110,10 @@ public:
 	int get_doc_total_word_count(uint doc_id);
 
 private:
+	Search_Index(){};
 
-	int build_index(DocumentIndex* doc);
-
-	std::map<uint, WordIndex*>  m_words;  //倒排表
-
-	std::list<DocumentIndex*>  m_documents;  //正排表
-
-	uint64_t m_docs_count;
+	FILE* m_doc_index_file;
 };
-
-
-class Search_Index_File
-{
-public:
-	Search_Index_File(){};
-	~Search_Index_File(){};
-
-
-	int zipper_merge(const char* dest_index, const char* source_index);
-
-private:
-	int load_word_index(); 
-	int save_word_index();
-	std::map<uint, uint64_t> m_word_pos;
-};
-
-
 
 
 #endif

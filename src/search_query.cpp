@@ -52,14 +52,14 @@ int Search_Query::query( std::string question )
 	{
 		if ( !init )
 		{
-			g_Inverted_Index.query_word( query_vec[i].first, doc_list );
+			g_Index_Query.query_word( query_vec[i].first, doc_list );
 			init=true;
 		}
 		else
 		{
 			std::set<uint>  temp;
 			std::set<uint>  temp2=doc_list;
-			g_Inverted_Index.query_word(query_vec[i].first, temp);
+			g_Index_Query.query_word(query_vec[i].first, temp);
 			doc_list.clear();
 			std::set_intersection(temp.begin(), temp.end(), temp2.begin(), temp2.end(), std::inserter(doc_list, doc_list.begin()) );
 		}
@@ -90,7 +90,7 @@ float Search_Query::get_similarity(PairVec& query_vec, std::set<uint>& doc_list 
 	for ( uint i=0; i<query_vec.size(); ++i )
 	{
 		float TF_value=query_vec[i].second/query_word_sum;
-		float IDF_value=g_Inverted_Index.get_word_IDF( query_vec[i].first );
+		float IDF_value=g_Index_Query.get_word_IDF( query_vec[i].first );
 		query_TFIDF_vec.push_back(TF_value*IDF_value);
 		query_TFIDF_vec_module+=(query_TFIDF_vec[i]*query_TFIDF_vec[i]);
 	}
@@ -104,14 +104,14 @@ float Search_Query::get_similarity(PairVec& query_vec, std::set<uint>& doc_list 
 		PairVec doc_vec;
 		for ( uint i=0; i<query_vec.size(); ++i )
 		{
-			doc_vec.push_back(std::make_pair(query_vec[i].first, g_Inverted_Index.get_doc_word_count(doc_id, query_vec[i].first) ));
+			doc_vec.push_back(std::make_pair(query_vec[i].first, g_Index_Query.get_doc_word_count(doc_id, query_vec[i].first) ));
 		}
 
-		int doc_word_sum=g_Inverted_Index.get_doc_total_word_count(doc_id); //std::accumulate(doc_vec.begin(), doc_vec.end(), doc_word_sum ,PairVecPlusFunc());
+		int doc_word_sum=g_Index_Query.get_doc_total_word_count(doc_id); //std::accumulate(doc_vec.begin(), doc_vec.end(), doc_word_sum ,PairVecPlusFunc());
 		for ( uint i=0; i<doc_vec.size(); ++i )
 		{
 			float TF_value=doc_vec[i].second/(float)doc_word_sum;
-			float IDF_value=g_Inverted_Index.get_word_IDF(doc_vec[i].first);
+			float IDF_value=g_Index_Query.get_word_IDF(doc_vec[i].first);
 			doc_TFIDF_vec.push_back(TF_value*IDF_value);
 		}
 
