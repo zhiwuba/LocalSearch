@@ -15,18 +15,18 @@
 int main()
 {
 #if 1
+	g_Index_Query.initialize();
 	long startTime=GetTickCount();
 	g_Crawl.traverse_directory("D:\\Workspace\\LocalSearch\\msvc\\Data");
 	long costTime=GetTickCount()-startTime;
 	printf("build index cost time : %d \n", costTime);
 
 	startTime=GetTickCount();
-	g_Inverted_Index.save_index();
+	g_Index_Manager.save_index();
 	costTime=GetTickCount()-startTime;
 	printf("save index cost time : %d \n", costTime);
 
 	
-
 	bool exit_flag=false;
 	while ( !exit_flag )
 	{

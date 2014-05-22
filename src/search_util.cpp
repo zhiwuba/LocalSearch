@@ -1,3 +1,4 @@
+#include <assert.h>
 #ifdef WIN32
 #include <windows.h>
 #endif // WIN32
@@ -39,14 +40,10 @@ void print_binary(char c)
 	printf("\n");
 }
 
-void variable_byte_encode( std::vector<uint>& arrays, uchar** buffer ,int* length )
+void variable_byte_encode( std::vector<uint>& arrays, uchar* buffer ,int* length )
 {
 	*length=0;
-
-	int array_size=arrays.size();
-	*buffer=new uchar[arrays.size()*4];
-
-	for ( int i=0; i<arrays.size(); i++ )
+	for ( uint i=0; i<arrays.size(); i++ )
 	{
 		int len=0;
 		uint t=arrays[i];
@@ -66,7 +63,7 @@ void variable_byte_encode( std::vector<uint>& arrays, uchar** buffer ,int* lengt
 				c=(((t>>(7*j))<<1)|0x1);
 			else
 				c=((t>>(7*j))<<1);
-			(*buffer)[*length]=c;
+			buffer[*length]=c;
 			(*length)++;
 			//print_binary(c);
 		}
@@ -89,7 +86,7 @@ void variable_byte_decode( uchar* buffer, int len ,std::vector<uint>& arrays )
 	}
 }
 
-void compress_data( std::vector<uint>& arrays, uchar** buffer, int* length )
+void compress_data( std::vector<uint>& arrays, uchar* buffer, int* length )
 {
 	for ( int i=arrays.size()-1; i>=1 ; --i )
 	{
@@ -102,7 +99,7 @@ void decompress_data( uchar* buffer, int len, std::vector<uint>& arrays )
 {
 	variable_byte_decode(buffer,len, arrays);
 
-	for ( int i=1; i<arrays.size() ;i++ )
+	for ( uint i=1; i<arrays.size() ;i++ )
 	{
 		arrays[i]+=arrays[i-1];
 	}
@@ -123,3 +120,10 @@ std::string get_core_path()
 	return core_path;
 }
 
+int move_file( const char* dest_file, const char* src_file )
+{
+	assert(dest_file!=NULL&&src_file!=NULL);
+	if (ENOENT==access(src_file))
+	
+
+}

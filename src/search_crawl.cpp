@@ -39,7 +39,7 @@ int Search_Crawl::traverse_directory( const char* directory )
 
 	sprintf(file_dir, "%s\\%s", directory, find_data.cFileName );
 	g_Parser.Parse(file_dir);
-	g_Inverted_Index.add_doc(g_Parser.get_document());
+	g_Index_Manager.add_doc(g_Parser.get_document());
 
 	std::cout<<directory<<"\\"<<find_data.cFileName<<std::endl;
 	while (::FindNextFile(handle, &find_data))
@@ -59,7 +59,7 @@ int Search_Crawl::traverse_directory( const char* directory )
 		{
 			sprintf(file_dir, "%s\\%s", directory, find_data.cFileName );
 			g_Parser.Parse(file_dir);
-			g_Inverted_Index.add_doc(g_Parser.get_document());
+			g_Index_Manager.add_doc(g_Parser.get_document());
 		}
 	}
 	FindClose(handle);
