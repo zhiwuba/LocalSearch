@@ -58,6 +58,19 @@ int Search_Index_File::save_word_index()
 	return 0;
 }
 
+void Search_Index_File::set_word_index_file_path( std::string& path )
+{
+	m_word_index_file_path=path;
+	create_file_if_nonexist(path.c_str());
+}
+
+void Search_Index_File::set_doc_index_file_path( std::string& path )
+{
+	m_doc_index_file_path=path;
+	create_file_if_nonexist(path.c_str());
+}
+
+
 /*
 **  拉链法合并索引文件
 **/
@@ -66,8 +79,8 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 	this->load_word_index();
 	other_index->load_word_index();
 
-	std::string temp_file_path=get_core_path()+"temp.dat";
-	FILE* dest_doc_index_file=fopen(this->get_doc_index_file_path().c_str(), "a+");
+	std::string temp_file_path=get_core_path()+"media_file.dat";
+	FILE* dest_doc_index_file=fopen(this->get_doc_index_file_path().c_str(), "rb");
 	FILE* src_doc_index_file=fopen(other_index->get_doc_index_file_path().c_str(),"rb");
 	FILE* temp_file=fopen(temp_file_path.c_str(), "wb");
 	assert(dest_doc_index_file!=NULL&&src_doc_index_file!=NULL&&temp_file!=NULL);
@@ -197,9 +210,10 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 	this->m_word_pos=final_word_index;
 	this->save_word_index();
 
+	//删除临时倒排索引
 	remove(other_index->get_word_index_file_path().c_str());
-	remove(this->get_doc_index_file_path().c_str());
-	rename(temp_file_path.c_str(), this->get_doc_index_file_path().c_str() );
+	remove(other_index->get_doc_index_file_path().c_str());
+	move_file(temp_file_path.c_str(), this->get_doc_index_file_path().c_str() );
 
 	return 0;
 }
@@ -317,11 +331,9 @@ int Search_Index_File::clean()
 	remove(get_word_index_file_path().c_str());
 	remove(get_doc_index_file_path().c_str());
 
-	set_word_index_file_path(std::string(""));
-	set_doc_index_file_path(std::string(""));
-
 	return 0;
 }
+
 
 
 ////////////////////////////////////////////////////////

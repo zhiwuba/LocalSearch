@@ -29,8 +29,8 @@ public:
 	Search_Index_File(){};
 	virtual ~Search_Index_File(){};
 
-	void set_word_index_file_path(std::string& path){ m_word_index_file_path=path;};
-	void set_doc_index_file_path(std::string& path){ m_doc_index_file_path=path;};
+	void set_word_index_file_path(std::string& path);
+	void set_doc_index_file_path(std::string& path);
 	std::string get_word_index_file_path(){return m_word_index_file_path;};
 	std::string get_doc_index_file_path(){return m_doc_index_file_path;};
 

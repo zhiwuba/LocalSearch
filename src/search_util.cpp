@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <io.h>
 #ifdef WIN32
 #include <windows.h>
 #endif // WIN32
@@ -120,10 +121,24 @@ std::string get_core_path()
 	return core_path;
 }
 
-int move_file( const char* dest_file, const char* src_file )
+int move_file( const char* src_file, const char* dest_file )
 {
 	assert(dest_file!=NULL&&src_file!=NULL);
-	if (ENOENT==access(src_file))
-	
+	if (0==_access(dest_file, 0))
+	{  //先删除 目的文件
+		remove(dest_file);
+	}
+	rename(src_file, dest_file);
+	return 0;
+}
 
+int create_file_if_nonexist( const char* path )
+{
+	assert(path!=NULL);
+	if ( -1==_access(path,0) )
+	{
+		FILE* file=fopen(path,"w");
+		fclose(file);
+	}
+	return 0;
 }

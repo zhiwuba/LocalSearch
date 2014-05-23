@@ -40,4 +40,6 @@ void decompress_data(uchar* buffer, int len, std::vector<uint>& arrays );
 std::string get_core_path();
 
 
-int move_file(const char* dest_file, const char* src_file);
+int move_file(const char* src_file, const char* dest_file);
+
+int create_file_if_nonexist( const char* path);
