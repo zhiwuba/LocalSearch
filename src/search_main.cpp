@@ -15,7 +15,6 @@
 int main()
 {
 #if 1
-	g_Index_Query.initialize();
 	long startTime=GetTickCount();
 	g_Crawl.traverse_directory("D:\\Workspace\\LocalSearch\\msvc\\Data");
 	long costTime=GetTickCount()-startTime;
@@ -26,7 +25,7 @@ int main()
 	costTime=GetTickCount()-startTime;
 	printf("save index cost time : %d \n", costTime);
 
-	
+	g_Index_Query.initialize();
 	bool exit_flag=false;
 	while ( !exit_flag )
 	{

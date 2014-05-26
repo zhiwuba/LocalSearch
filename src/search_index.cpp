@@ -3,13 +3,18 @@
 
 #include "search_index.h"
 
-/*
-**  词的索引表
-**  WorldID  nDocs  Offset 
-**
-**  文档结合的索引表
-**  DocId    NHits     HitList
-**/
+/*-----------------------------------------------------------
+**  term_index_struct
+**  ...|word_id|doc_count|start_offset|end_offset|... 
+**----------------------------------------------------------
+**  doc_index_struct
+**  ...|doc_count|size|doc_list|size|word_count_in_everydoc|size|offset_of_every_doc_in_position_file|...
+**                        l_____i           l___________i                            l____________________i                               
+**-----------------------------------------------------------
+** position_index_struct 
+** ...|size|position_list |...
+**      l________i
+*-------------------------------------------------------------*/
 
 int Search_Index_File::load_word_index()
 {
@@ -58,18 +63,97 @@ int Search_Index_File::save_word_index()
 	return 0;
 }
 
-void Search_Index_File::set_word_index_file_path( std::string& path )
+void Search_Index_File::set_index_file_path( std::string path, std::string prefix )
 {
-	m_word_index_file_path=path;
-	create_file_if_nonexist(path.c_str());
+	m_word_index_file_path=path+prefix+kWordIndexFile;
+	create_file_if_nonexist(m_word_index_file_path.c_str());
+
+	m_doc_index_file_path=path+prefix+kDocIndexFile;
+	create_file_if_nonexist(m_doc_index_file_path.c_str());
+
+	m_position_file_path=path+prefix+kPosIndexFile;
+	create_file_if_nonexist(m_position_file_path.c_str());
 }
 
-void Search_Index_File::set_doc_index_file_path( std::string& path )
+
+int Search_Index_File::add_doc( DocumentIndex* doc )
 {
-	m_doc_index_file_path=path;
-	create_file_if_nonexist(path.c_str());
+	uint doc_id=doc->doc_id;
+	std::map<uint,Word*>::iterator iter=doc->words.begin();
+	for ( ; iter!=doc->words.end() ; ++iter)
+	{
+		int word_id=iter->first;
+		std::map<uint, WordIndex*>::iterator iter2 = m_words.find(word_id);
+		if ( iter2 !=m_words.end() )
+		{
+			iter2->second->documents[doc_id]=iter->second;
+		}
+		else
+		{
+			WordIndex* index=new WordIndex;
+			index->documents[doc_id]=iter->second;
+			m_words[word_id]=index;
+		}
+	}
+
+	return 0;
 }
 
+
+/*
+**   保存索引文件
+**/
+int Search_Index_File::save_index()
+{
+	uint  cur_pos_d=0; //doc
+	uint  cur_pos_p=0; //pos
+	FILE* doc_file=fopen(get_doc_index_file_path().c_str(),"wb");
+	FILE* pos_file=fopen(get_position_file_path().c_str(),"wb");
+	if ( doc_file==NULL || pos_file==NULL )
+	{
+		printf("open index file error!.");
+		return -1;
+	}
+
+	/* 保存 doc_index */
+	std::map<uint, WordIndex*>::iterator iter = m_words.begin();
+	for ( ; iter!=m_words.end() ; ++iter )
+	{
+		uint  offset=0;
+		uint  word_id=iter->first;
+		std::vector<uint> doc_hits_vec;
+		std::vector<uint> pos_offset_vec;
+		std::vector<uint> doc_id_vec;
+		WordIndex* word_index=iter->second;
+		std::map<uint, Word*>::iterator iter2=word_index->documents.begin(); /*doc_id---Word*/
+		for ( ; iter2!= word_index->documents.end() ; ++iter2  )
+		{
+			uint   doc_id=iter2->first;
+			doc_id_vec.push_back(doc_id);
+			int len=write_item_to_pos_index(pos_file, iter2->second->positions);
+			pos_offset_vec.push_back(cur_pos_p);
+			doc_hits_vec.push_back(iter2->second->positions.size());
+			cur_pos_p+=len;
+		}
+
+		offset+=write_item_to_doc_index(doc_file, doc_id , iter2->second->positions );
+
+		TermIndexItem data;
+		data.doc_count=word_index->documents.size();
+		data.start_offset=cur_pos_d;
+		cur_pos_d+=offset;
+		data.end_offset=cur_pos_d;
+		m_word_pos[word_id]=data;
+	}
+
+	fclose(doc_file);
+	fclose(pos_file);
+
+	/*   保存单词索引   */
+	save_word_index();
+
+	return 0;
+}
 
 /*
 **  拉链法合并索引文件
@@ -92,7 +176,7 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 #define ADD_WORD_DATA(file,len,iter) \
 	char* buffer=new char[len];\
 	fread(buffer,1,len,file);\
-	fwrite(buffer,1,len,temp_file);\
+	file_write_buffer_with_head(temp_file,buffer,len);\
 	cur_pos+=len;\
 	data.end_offset=cur_pos;\
 	final_word_index[iter->first]=data;\
@@ -105,7 +189,7 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 		TermIndexItem data;
 		data.start_offset=cur_pos;
 
-		if ( dest_iter->first == src_iter->first )
+		if ( dest_iter->first == src_iter->first )  //word_id 相等
 		{
 			data.doc_count=src_iter->second.doc_count+dest_iter->second.doc_count;
 			/* 写文件*/
@@ -114,6 +198,8 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 			char* dest_buffer=NULL;
 			int src_buffer_len=0;
 			int dest_buffer_len=0;
+			int len=0;
+			fwrite((char*)&len,1,4, temp_file);
 			bool read_src_flag=true, read_dest_flag=true;
 			while ( i<src_iter->second.doc_count&&j<=dest_iter->second.doc_count )
 			{
@@ -126,18 +212,18 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 				uint dest_doc_id=atoi(dest_buffer);
 				if ( src_doc_id<dest_doc_id )
 				{
-					fwrite(src_buffer,1, src_buffer_len, temp_file);
+					int l=file_write_buffer_with_head(temp_file,src_buffer,src_buffer_len);
 					read_src_flag=true;
 					read_dest_flag=false;
-					cur_pos+=src_buffer_len;
+					cur_pos+=l;
 					i++;
 				}
 				else
 				{
-					fwrite(dest_buffer,1, dest_buffer_len, temp_file);
+					int l=file_write_buffer_with_head(temp_file,dest_buffer,dest_buffer_len);
 					read_src_flag=false;
 					read_dest_flag=true;
-					cur_pos+=dest_buffer_len;
+					cur_pos+=l;
 					j++;
 				}
 			}
@@ -145,20 +231,25 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 			while ( i<=src_iter->second.doc_count )
 			{
 				src_buffer_len=file_read_buffer_by_head(src_doc_index_file , &src_buffer );
-				fwrite(src_buffer,1, src_buffer_len, temp_file);
-				cur_pos+=src_buffer_len;
+				int l=file_write_buffer_with_head(temp_file,src_buffer,src_buffer_len);
+				cur_pos+=l;
 				i++;
 			}
 
 			while ( j<=dest_iter->second.doc_count )
 			{
 				dest_buffer_len=file_read_buffer_by_head(dest_doc_index_file , &dest_buffer );
-				fwrite(dest_buffer,1, dest_buffer_len, temp_file);
+				int l=file_write_buffer_with_head(temp_file,dest_buffer,dest_buffer_len);
 				cur_pos+=dest_buffer_len;
 				j++;
 			}
 
 			data.end_offset=cur_pos;
+			fseek(temp_file,data.start_offset,SEEK_SET);
+			len=data.end_offset-data.start_offset;
+			fwrite((char*)&len,1,4,temp_file);  //写入buffer长度
+			fseek(temp_file,data.end_offset,SEEK_SET);
+
 			final_word_index[src_iter->first]=data;
 			++src_iter;
 			++dest_iter;
@@ -210,9 +301,7 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 	this->m_word_pos=final_word_index;
 	this->save_word_index();
 
-	//删除临时倒排索引
-	remove(other_index->get_word_index_file_path().c_str());
-	remove(other_index->get_doc_index_file_path().c_str());
+	//删除中间文件
 	move_file(temp_file_path.c_str(), this->get_doc_index_file_path().c_str() );
 
 	return 0;
@@ -261,18 +350,38 @@ int Search_Index_File::file_write_buffer_with_head( FILE* file, char* buffer, in
 	return 4+length;
 }
 
-int Search_Index_File::write_item_to_doc_index( FILE* file, uint doc_id, std::vector<uint> positions )
+int Search_Index_File::write_item_to_doc_index( FILE* file, std::vector<uint>& doc_id_vec , std::vector<uint>& doc_hits_vec, std::vector<uint>& pos_offset_vec)
 {
-	int     array_size=positions.size();
+	int     writen_len=0;
+	int     doc_count=doc_hits_vec.size();
 	int     buffer_len=0;
-	char* buffer=new char[array_size*4+4096];
-	sprintf(buffer,"%u#%u#", doc_id, array_size );
-	int     len=strlen(buffer);
+	char* buffer=new char[doc_count*4];
+	variable_byte_encode( doc_id_vec, (uchar*)buffer, &buffer_len);  //仅对doc_id 压缩存储
+	int len=file_write_buffer_with_head(file,buffer, buffer_len);
+	if ( len<0 )
+	{
+		return -1;
+	}
+	writen_len+=len;
+	
+	memset(buffer,0, doc_count*4);
+	variable_byte_encode( doc_hits_vec, (uchar*)buffer, &buffer_len);
+	len=file_write_buffer_with_head(file,buffer, buffer_len);
+	if ( len<0 )
+	{
+		return -1;
+	}
+	writen_len+=len;
 
-	variable_byte_encode( positions, (uchar*)buffer+len, &buffer_len);
-	buffer_len+=len;
+	memset(buffer,0,doc_count*4);
+	variable_byte_encode(pos_offset_vec, (uchar*)buffer, &buffer_len );
+	len=file_write_buffer_with_head(file,buffer, buffer_len);
+	if ( len<0 )
+	{
+		return -1;
+	}
+	writen_len+=len;
 
-	int writen_len=file_write_buffer_with_head(file,buffer, buffer_len);
 	delete[] buffer;
 	return writen_len;
 }
@@ -318,34 +427,46 @@ int Search_Index_File::read_item_from_doc_index( FILE* file, uint& doc_id, std::
 	return 0;
 }
 
-int Search_Index_File::add_term_item( uint word_id, TermIndexItem& item )
+int Search_Index_File::write_item_to_pos_index(FILE* file, std::vector<uint> poss)
 {
-	m_word_pos[word_id]=item;
+	int buffer_len=0;
+	char* buffer=new char[poss.size()*4];
+	variable_byte_encode( poss, (uchar*)buffer, &buffer_len);
+	int len=file_write_buffer_with_head(file, buffer,buffer_len);
+	delete[] buffer;
+	return len;
+}
+
+int Search_Index_File::read_item_from_pos_index(FILE* file, std::vector<uint>& poss)
+{
 	return 0;
 }
 
 int Search_Index_File::clean()
 {
+	for (std::map<uint, WordIndex*>::iterator iter=m_words.begin(); iter!=m_words.end() ;++iter )
+	{
+		delete iter->second;
+	}
 	m_word_pos.clear();
-	
-	remove(get_word_index_file_path().c_str());
-	remove(get_doc_index_file_path().c_str());
+	m_words.clear();
+
+	truncate_file(get_word_index_file_path().c_str());
+	truncate_file(get_doc_index_file_path().c_str());
 
 	return 0;
 }
-
-
 
 ////////////////////////////////////////////////////////
 
 Search_Index_File_Manager::Search_Index_File_Manager()
 {
-	m_document_count=0;
+	m_doc_count=0;
 	m_main_index_file=new Search_Index_File();
-	m_main_index_file->set_doc_index_file_path(get_core_path()+kMainDocIndexFileName);
-	m_main_index_file->set_word_index_file_path(get_core_path()+kMainWordIndexFileName);
+	m_main_index_file->set_index_file_path(get_core_path()+kMainWordIndex , get_core_path()+kMainDocIndex);
 
 	m_temp_index_file=new Search_Index_File();
+	m_temp_index_file->set_index_file_path(get_core_path()+kTempWordIndex , get_core_path()+kTempDocIndex);
 }
 
 Search_Index_File_Manager::~Search_Index_File_Manager()
@@ -356,67 +477,22 @@ Search_Index_File_Manager::~Search_Index_File_Manager()
 
 int Search_Index_File_Manager::add_doc( DocumentIndex* doc )
 {
-	m_documents.push_back(doc);
-	m_document_count++;
+	m_temp_index_file->add_doc(doc);
+	m_doc_count++;
 
-	build_index(doc);
-	if ( m_documents.size()>50 )
+	if ( m_doc_count%50==0 )
 	{
-		m_temp_index_file->set_doc_index_file_path(get_core_path()+kTempDocIndexFileName);
-		m_temp_index_file->set_word_index_file_path(get_core_path()+kTempWordIndexFileName);
-		save_temp_index();
-		for (std::map<uint, WordIndex*>::iterator iter=m_words.begin(); iter!=m_words.end() ;++iter )
-		{
-			delete iter->second;
-		}
-		m_words.clear();
-		m_documents.clear();
-
-		m_main_index_file->zipper_merge(m_temp_index_file);
-		m_temp_index_file->clean();
+		save_index();
 	}
-
 	return 0;
 }
 
-int Search_Index_File_Manager::build_index( DocumentIndex* doc )
-{
-	uint doc_id=doc->doc_id;
-	std::map<uint,Word*>::iterator iter=doc->words.begin();
-	for ( ; iter!=doc->words.end() ; ++iter)
-	{
-		int word_id=iter->first;
-		std::map<uint, WordIndex*>::iterator iter2 = m_words.find(word_id);
-		if ( iter2 !=m_words.end() )
-		{
-			iter2->second->documents[doc_id]=iter->second;
-		}
-		else
-		{
-			WordIndex* index=new WordIndex;
-			index->documents[doc_id]=iter->second;
-			m_words[word_id]=index;
-		}
-	}
-
-	return 0;
-}
 
 int Search_Index_File_Manager::save_index()
 {
-	m_temp_index_file->set_doc_index_file_path(get_core_path()+kTempDocIndexFileName);
-	m_temp_index_file->set_word_index_file_path(get_core_path()+kTempWordIndexFileName);
-
 	/* 保存临时索引 */
-	save_temp_index();
+	m_temp_index_file->save_index();
 	
-	for (std::map<uint, WordIndex*>::iterator iter=m_words.begin(); iter!=m_words.end() ;++iter )
-	{
-		delete iter->second;
-	}
-	m_words.clear();
-	m_documents.clear();
-
 	/* 归并到主索引文件 */
 	m_main_index_file->zipper_merge(m_temp_index_file);
 	m_temp_index_file->clean();
@@ -425,50 +501,21 @@ int Search_Index_File_Manager::save_index()
 }
 
 
-/*
-**   保存成临时索引文件
-**/
-int Search_Index_File_Manager::save_temp_index()
+////////////////////////////////////////////////////////////////
+
+Search_Index::Search_Index()
 {
-	/* 保存doc索引 */
-	uint  cur_pos=0;
-	FILE* doc_file=fopen(m_temp_index_file->get_doc_index_file_path().c_str(),"wb");
-	if ( doc_file!=NULL )
-	{
-		std::map<uint, WordIndex*>::iterator iter = m_words.begin();
-		for ( ; iter!=m_words.end() ; ++iter )
-		{
-			uint  offset=0;
-			uint  word_id=iter->first;
-			WordIndex* word_index=iter->second;
-			std::map<uint, Word*>::iterator iter2=word_index->documents.begin();
-			for ( ; iter2!= word_index->documents.end() ; ++iter2  )
-			{
-				uint   doc_id=iter2->first;
-				offset+=m_temp_index_file->write_item_to_doc_index(doc_file, doc_id , iter2->second->positions );
-			}
-
-			TermIndexItem data;
-			data.doc_count=word_index->documents.size();
-			data.start_offset=cur_pos;
-			cur_pos+=offset;
-			data.end_offset=cur_pos;
-			m_temp_index_file->add_term_item(word_id, data);
-		}
-		fclose(doc_file);
-	}
-	/*   保存单词索引   */
-	m_temp_index_file->save_word_index();
-
-	return 0;
 }
 
-////////////////////////////////////////////////////////////////
+Search_Index::~Search_Index()
+{
+	fclose(m_doc_index_file);
+}
 
 int Search_Index::initialize()
 {
-	set_doc_index_file_path(get_core_path()+kMainDocIndexFileName);
-	set_word_index_file_path(get_core_path()+kMainWordIndexFileName);
+	set_index_file_path(get_core_path()+kMainWordIndex ,get_core_path()+kMainDocIndex);
+
 	if ( 0!=load_word_index() )
 	{
 		printf("Search_Index_File::initialize load_word_index failed.\n");
@@ -484,6 +531,8 @@ int Search_Index::initialize()
 	
 	return 0;
 }
+
+
 
 int Search_Index::query_word( int word_id, std::set<uint>& doc_id_set )
 {
@@ -520,6 +569,7 @@ float Search_Index::get_word_IDF( int word_id )
 	return result;
 }
 
+// 获取在doc_id 中 word_id的数量
 int Search_Index::get_doc_word_count(uint doc_id, uint word_id)
 {
 	std::map<uint, TermIndexItem>::iterator iter = m_word_pos.find(word_id);

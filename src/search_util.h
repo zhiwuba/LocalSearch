@@ -34,6 +34,20 @@ void compress_data(std::vector<uint>& arrays, uchar* buffer, int* length);
 **/
 void decompress_data(uchar* buffer, int len, std::vector<uint>& arrays );
 
+
+/*
+**  数组编码  -- 非压缩
+**/
+void regular_byte_encode(std::vector<uint>& arrays, uchar* buffer, int* length);
+
+
+/*
+**  数组解码 --非压缩
+**/
+void regular_byte_decode(uchar* buffer, int len, std::vector<uint>& arrays);
+
+
+
 /*
 **  获取程序当前路径
 **/
@@ -43,3 +57,5 @@ std::string get_core_path();
 int move_file(const char* src_file, const char* dest_file);
 
 int create_file_if_nonexist( const char* path);
+
+int truncate_file( const char* path );

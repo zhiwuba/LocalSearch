@@ -106,6 +106,27 @@ void decompress_data( uchar* buffer, int len, std::vector<uint>& arrays )
 	}
 }
 
+void regular_byte_encode( std::vector<uint>& arrays, uchar* buffer, int* length )
+{
+	int  cur=0;
+	for ( int i=0; i<arrays.size(); ++i )
+	{
+		memcpy(buffer+cur,(char*)&arrays[i], 4 );
+		cur+=4;
+	}
+	*length=cur;
+}
+
+void regular_byte_decode( uchar* buffer, int len, std::vector<uint>& arrays )
+{
+	char buffer[4]={0};
+	for (int i=0; i<len ; )
+	{
+		int value;
+		memcpy((char*)&value,buffer+i,4);
+		arrays.push_back(value);
+	}
+}
 
 std::string get_core_path()
 {
@@ -142,3 +163,15 @@ int create_file_if_nonexist( const char* path )
 	}
 	return 0;
 }
+
+int truncate_file( const char* path )
+{
+	assert(path!=NULL);
+	if ( 0==_access(path,0) )
+	{  //destory file
+		FILE* file=fopen(path,"w");
+		fclose(file);
+	}
+	return 0;
+}
+

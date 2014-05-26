@@ -7,11 +7,10 @@
 #include "search_util.h"
 #include "search_doc_word.h"
 
-#define kMainWordIndexFileName "word.dat"
-#define kMainDocIndexFileName "doc.dat"
+#define kWordIndexFile  "word.dat"
+#define kDocIndexFile    "doc.dat"
+#define kPosIndexFile    "pos.dat"
 
-#define kTempWordIndexFileName "word_temp.dat"
-#define kTempDocIndexFileName "doc_temp.dat"
 
 struct TermIndexItem
 {
@@ -29,15 +28,18 @@ public:
 	Search_Index_File(){};
 	virtual ~Search_Index_File(){};
 
-	void set_word_index_file_path(std::string& path);
-	void set_doc_index_file_path(std::string& path);
+	/* 索引路径设置 */
+	void set_index_file_path(std::string path, std::string prefix);
 	std::string get_word_index_file_path(){return m_word_index_file_path;};
 	std::string get_doc_index_file_path(){return m_doc_index_file_path;};
+	std::string get_position_file_path(){return m_position_file_path;};
 
 	int load_word_index();
 	int save_word_index();
 
-	int add_term_item(uint word_id, TermIndexItem& item);
+	//添加 和 保存
+	int add_doc(DocumentIndex* doc);
+	int save_index();
 
 	int write_item_to_doc_index( FILE* file, uint doc_id, std::vector<uint> positions );
 	int read_item_from_doc_index( FILE* file, uint& doc_id, std::vector<uint>& positions );
@@ -47,18 +49,20 @@ public:
 
 	int clean(); //清空全部
 
-public:	
-
+public:
+	std::map<uint, WordIndex*>      m_words;  //倒排表
 	std::map<uint, TermIndexItem> m_word_pos;
 
 	std::string   m_word_index_file_path;
 	std::string   m_doc_index_file_path;
-
+	std::string   m_position_file_path;
 private:
 	int file_write_buffer_with_head(FILE* file, char* buffer, int length);
 
 	int file_read_buffer_by_head(FILE* file, char** buffer);
 
+	int write_item_to_pos_index(FILE* file, std::vector<uint> poss);
+	int read_item_from_pos_index(FILE* file, std::vector<uint>& poss);
 };
 
 
@@ -74,7 +78,7 @@ public:
 	}
 
 	Search_Index_File_Manager();
-	~Search_Index_File_Manager();;
+	~Search_Index_File_Manager();
 
 	int add_doc(DocumentIndex* doc);
 	int save_index();
@@ -83,14 +87,7 @@ private:
 	Search_Index_File*  m_main_index_file; //主索引
 	Search_Index_File*  m_temp_index_file; //临时索引
 private:
-	int save_temp_index();
-	int build_index(DocumentIndex* doc);
-
-	std::map<uint, WordIndex*>  m_words;  //倒排表
-
-	std::list<DocumentIndex*>  m_documents;  //正排表
-	
-	uint  m_document_count;
+	uint  m_doc_count;
 };
 
 
@@ -103,10 +100,9 @@ public:
 		static Search_Index _instance;
 		return _instance;
 	}
-	~Search_Index(){};
+	~Search_Index();
 
 	int initialize();
-
 	/**
 	***  查询
 	**/
@@ -119,7 +115,7 @@ public:
 	int get_doc_total_word_count(uint doc_id);
 
 private:
-	Search_Index(){};
+	Search_Index();
 
 	FILE* m_doc_index_file;
 };
