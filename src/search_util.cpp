@@ -120,7 +120,7 @@ void regular_byte_encode( std::vector<uint>& arrays, uchar* buffer, int* length 
 void regular_byte_decode( uchar* buffer, int len, std::vector<uint>& arrays )
 {
 	char buffer[4]={0};
-	for (int i=0; i<len ; )
+	for (int i=0; i<len ; i+=4 )
 	{
 		int value;
 		memcpy((char*)&value,buffer+i,4);

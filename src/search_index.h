@@ -41,7 +41,7 @@ public:
 	int add_doc(DocumentIndex* doc);
 	int save_index();
 
-	int write_item_to_doc_index( FILE* file, uint doc_id, std::vector<uint> positions );
+	int write_item_to_doc_index( FILE* file, std::vector<uint>& doc_id_vec , std::vector<uint>& doc_hits_vec, std::vector<uint>& pos_offset_vec);
 	int read_item_from_doc_index( FILE* file, uint& doc_id, std::vector<uint>& positions );
 	int read_item_from_doc_index( FILE* file, uint& doc_id, uint& hits );
 
