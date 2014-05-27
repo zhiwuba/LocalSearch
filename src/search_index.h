@@ -42,14 +42,20 @@ public:
 	int save_index();
 
 	int write_item_to_doc_index( FILE* file, std::vector<uint>& doc_id_vec , std::vector<uint>& doc_hits_vec, std::vector<uint>& pos_offset_vec);
-	int read_item_from_doc_index( FILE* file, uint& doc_id, std::vector<uint>& positions );
-	int read_item_from_doc_index( FILE* file, uint& doc_id, uint& hits );
+	int read_item_from_doc_index( FILE* file, char bitmap ,std::vector<uint>& doc_id_vec , std::vector<uint>& doc_hits_vec, std::vector<uint>& pos_offset_vec );
 
 	int zipper_merge(Search_Index_File* other_index);
 
 	int clean(); //清空全部
 
-public:
+protected:
+	int file_write_buffer_with_head(FILE* file, char* buffer, int length);
+	int file_read_buffer_by_head(FILE* file, char** buffer);
+	int file_quick_read_special_bits(FILE* file, int offset ,char* buffer, int length);
+
+	int write_item_to_pos_index(FILE* file, std::vector<uint> poss);
+	int read_item_from_pos_index(FILE* file, std::vector<uint>& poss);
+	
 	std::map<uint, WordIndex*>      m_words;  //倒排表
 	std::map<uint, TermIndexItem> m_word_pos;
 
@@ -57,12 +63,11 @@ public:
 	std::string   m_doc_index_file_path;
 	std::string   m_position_file_path;
 private:
-	int file_write_buffer_with_head(FILE* file, char* buffer, int length);
+	int merge_doc_index(FILE* src_file, int pos_offset, FILE* dest_file );
+	int merge_doc_index(FILE* src_file1, FILE* src_file2, int pos_offset1, int pos_offset2 , FILE* dest_file );
 
-	int file_read_buffer_by_head(FILE* file, char** buffer);
+	int merge_pos_index(FILE* src_file, FILE* dest_file);
 
-	int write_item_to_pos_index(FILE* file, std::vector<uint> poss);
-	int read_item_from_pos_index(FILE* file, std::vector<uint>& poss);
 };
 
 
@@ -118,6 +123,7 @@ private:
 	Search_Index();
 
 	FILE* m_doc_index_file;
+	FILE* m_pos_index_file;
 };
 
 

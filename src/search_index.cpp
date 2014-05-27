@@ -1,6 +1,6 @@
 #include <math.h>
 #include <assert.h>
-
+#include <algorithm>
 #include "search_index.h"
 
 /*-----------------------------------------------------------
@@ -8,13 +8,25 @@
 **  ...|word_id|doc_count|start_offset|end_offset|... 
 **----------------------------------------------------------
 **  doc_index_struct
-**  ...|doc_count|size|doc_list|size|word_count_in_everydoc|size|offset_of_every_doc_in_position_file|...
-**                        l_____i           l___________i                            l____________________i                               
+**  ...|size|doc_list|size|word_count_in_everydoc|size|offset_of_every_doc_in_position_file|...
+**        l_____i         l___________i                            l____________________i                               
 **-----------------------------------------------------------
 ** position_index_struct 
 ** ...|size|position_list |...
 **      l________i
 *-------------------------------------------------------------*/
+
+void Search_Index_File::set_index_file_path( std::string path, std::string prefix )
+{
+	m_word_index_file_path=path+prefix+kWordIndexFile;
+	create_file_if_nonexist(m_word_index_file_path.c_str());
+
+	m_doc_index_file_path=path+prefix+kDocIndexFile;
+	create_file_if_nonexist(m_doc_index_file_path.c_str());
+
+	m_position_file_path=path+prefix+kPosIndexFile;
+	create_file_if_nonexist(m_position_file_path.c_str());
+}
 
 int Search_Index_File::load_word_index()
 {
@@ -61,18 +73,6 @@ int Search_Index_File::save_word_index()
 	}
 
 	return 0;
-}
-
-void Search_Index_File::set_index_file_path( std::string path, std::string prefix )
-{
-	m_word_index_file_path=path+prefix+kWordIndexFile;
-	create_file_if_nonexist(m_word_index_file_path.c_str());
-
-	m_doc_index_file_path=path+prefix+kDocIndexFile;
-	create_file_if_nonexist(m_doc_index_file_path.c_str());
-
-	m_position_file_path=path+prefix+kPosIndexFile;
-	create_file_if_nonexist(m_position_file_path.c_str());
 }
 
 
@@ -163,8 +163,10 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 	this->load_word_index();
 	other_index->load_word_index();
 
-	std::string temp_file_path=get_core_path()+"media_file.dat";
-	FILE* temp_file=fopen(temp_file_path.c_str(), "wb");
+	std::string temp_doc_path=get_core_path()+"middle_doc_file.dat";
+	std::string temp_pos_path=get_core_path()+"middle_pos_file.dat";
+	FILE* temp_doc_file=fopen(temp_doc_path.c_str(), "wb");
+	FILE* temp_pos_file=fopen(temp_pos_path.c_str(), "wb");
 	FILE* dest_doc_index_file=fopen(this->get_doc_index_file_path().c_str(), "rb");
 	FILE* dest_pos_index_file=fopen(this->get_position_file_path().c_str(),"rb");
 	FILE* src_doc_index_file=fopen(other_index->get_doc_index_file_path().c_str(),"rb");
@@ -172,20 +174,12 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 
 	assert(dest_doc_index_file!=NULL&&dest_pos_index_file!=NULL&&
 			src_doc_index_file!=NULL&&src_pos_index_file!=NULL&&
-			temp_file!=NULL);
+			temp_doc_file!=NULL&&temp_pos_file!=NULL);
 
 	std::map<uint, TermIndexItem>  final_word_index;
 	std::map<uint, TermIndexItem>::iterator dest_iter = this->m_word_pos.begin();
 	std::map<uint, TermIndexItem>::iterator src_iter = other_index->m_word_pos.begin();
 
-#define ADD_WORD_DATA(file,len,iter) \
-	char* buffer=new char[len];\
-	fread(buffer,1,len,file);\
-	file_write_buffer_with_head(temp_file,buffer,len);\
-	doc_cur_pos+=len;\
-	data.end_offset=doc_cur_pos;\
-	final_word_index[iter->first]=data;\
-	delete[] buffer;
 
 	uint64_t  doc_cur_pos=0;
 	uint64_t  pos_cur_pos=0;
@@ -199,63 +193,17 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 		{
 			data.doc_count=src_iter->second.doc_count+dest_iter->second.doc_count;
 			/* 写文件*/
-			uint i=0,j=0;
-			char* src_buffer=NULL;
-			char* dest_buffer=NULL;
-			int src_buffer_len=0;
-			int dest_buffer_len=0;
-			int len=0;
-			fwrite((char*)&len,1,4, temp_file);
-			bool read_src_flag=true, read_dest_flag=true;
-			while ( i<src_iter->second.doc_count&&j<=dest_iter->second.doc_count )
-			{
-				if ( read_src_flag )
-					src_buffer_len=file_read_buffer_by_head(src_doc_index_file , &src_buffer );
-				if ( read_dest_flag )
-					dest_buffer_len=file_read_buffer_by_head(dest_doc_index_file, &dest_buffer);
-				
-				uint src_doc_id=atoi(src_buffer);
-				uint dest_doc_id=atoi(dest_buffer);
-				if ( src_doc_id<dest_doc_id )
-				{
-					int l=file_write_buffer_with_head(temp_file,src_buffer,src_buffer_len);
-					read_src_flag=true;
-					read_dest_flag=false;
-					doc_cur_pos+=l;
-					i++;
-				}
-				else
-				{
-					int l=file_write_buffer_with_head(temp_file,dest_buffer,dest_buffer_len);
-					read_src_flag=false;
-					read_dest_flag=true;
-					doc_cur_pos+=l;
-					j++;
-				}
-			}
+			int len=merge_pos_index(src_pos_index_file, temp_pos_file);
+			int pos_cur_pos_s=pos_cur_pos; //保存
+			pos_cur_pos+=len;
+			len=merge_pos_index(dest_pos_index_file,temp_pos_file);
+			int pos_cur_pos_d=pos_cur_pos; //保存
+			pos_cur_pos+=len;
 
-			while ( i<=src_iter->second.doc_count )
-			{
-				src_buffer_len=file_read_buffer_by_head(src_doc_index_file , &src_buffer );
-				int l=file_write_buffer_with_head(temp_file,src_buffer,src_buffer_len);
-				doc_cur_pos+=l;
-				i++;
-			}
-
-			while ( j<=dest_iter->second.doc_count )
-			{
-				dest_buffer_len=file_read_buffer_by_head(dest_doc_index_file , &dest_buffer );
-				int l=file_write_buffer_with_head(temp_file,dest_buffer,dest_buffer_len);
-				doc_cur_pos+=dest_buffer_len;
-				j++;
-			}
+			len=merge_doc_index(src_doc_index_file, dest_doc_index_file, pos_cur_pos_s , pos_cur_pos_d, temp_doc_file);
+			doc_cur_pos+=len;
 
 			data.end_offset=doc_cur_pos;
-			fseek(temp_file,data.start_offset,SEEK_SET);
-			len=data.end_offset-data.start_offset;
-			fwrite((char*)&len,1,4,temp_file);  //写入buffer长度
-			fseek(temp_file,data.end_offset,SEEK_SET);
-
 			final_word_index[src_iter->first]=data;
 			++src_iter;
 			++dest_iter;
@@ -264,16 +212,26 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 		{
 			data.doc_count=src_iter->second.doc_count;
 			/* 写文件 */
-			int len=src_iter->second.end_offset-src_iter->second.start_offset;
-			ADD_WORD_DATA(src_doc_index_file,len,src_iter);
+			int pos_len=merge_pos_index(src_pos_index_file,temp_pos_file);
+			int doc_len=merge_doc_index(src_doc_index_file, pos_cur_pos, temp_doc_file );
+			pos_cur_pos+=pos_len;
+			doc_cur_pos+=doc_len;
+			data.end_offset=doc_cur_pos;
+			final_word_index[src_iter->first]=data;
+
 			++src_iter;
 		}
 		else
 		{
 			data.doc_count=dest_iter->second.doc_count;
 			/* 写文件 */
-			int len=dest_iter->second.end_offset - dest_iter->second.start_offset;
-			ADD_WORD_DATA(dest_doc_index_file,len,dest_iter);
+			int pos_len=merge_pos_index(dest_pos_index_file,temp_pos_file);
+			int doc_len=merge_doc_index(dest_doc_index_file, pos_cur_pos, temp_doc_file );
+			pos_cur_pos+=pos_len;
+			doc_cur_pos+=doc_len;
+			data.end_offset=doc_cur_pos;
+			final_word_index[dest_iter->first]=data;
+			
 			++dest_iter;
 		}
 	}
@@ -284,8 +242,14 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 		data.start_offset=doc_cur_pos;
 		data.doc_count=dest_iter->second.doc_count;
 		/* 写文件 */
-		int len=dest_iter->second.end_offset - dest_iter->second.start_offset;
-		ADD_WORD_DATA(dest_doc_index_file,len,dest_iter);
+
+		int pos_len=merge_pos_index(dest_pos_index_file,temp_pos_file);
+		int doc_len=merge_doc_index(dest_doc_index_file, pos_cur_pos, temp_doc_file );
+		pos_cur_pos+=pos_len;
+		doc_cur_pos+=doc_len;
+		data.end_offset=doc_cur_pos;
+		final_word_index[dest_iter->first]=data;
+
 		++dest_iter;
 	}
 
@@ -295,66 +259,152 @@ int Search_Index_File::zipper_merge( Search_Index_File* other_index )
 		data.start_offset=doc_cur_pos;
 		data.doc_count=src_iter->second.doc_count;
 		/* 写文件 */
-		int len=src_iter->second.end_offset-src_iter->second.start_offset;
-		ADD_WORD_DATA(src_doc_index_file,len,src_iter);
+		int pos_len=merge_pos_index(src_pos_index_file,temp_pos_file);
+		int doc_len=merge_doc_index(src_doc_index_file, pos_cur_pos, temp_doc_file );
+		pos_cur_pos+=pos_len;
+		doc_cur_pos+=doc_len;
+		data.end_offset=doc_cur_pos;
+		final_word_index[src_iter->first]=data;
+
 		++src_iter;
 	}
 
 	fclose(dest_doc_index_file);
 	fclose(src_doc_index_file);
-	fclose(temp_file);
+	fclose(dest_pos_index_file);
+	fclose(src_pos_index_file);
+	fclose(temp_doc_file);
+	fclose(temp_pos_file);
 
 	this->m_word_pos=final_word_index;
 	this->save_word_index();
 
 	//删除中间文件
-	move_file(temp_file_path.c_str(), this->get_doc_index_file_path().c_str() );
+	move_file(temp_doc_path.c_str(), this->get_doc_index_file_path().c_str() );
+	move_file(temp_pos_path.c_str(), this->get_position_file_path().c_str());
 
 	return 0;
 }
 
+/*
+**  合并无冲突
+**/
+int Search_Index_File::merge_doc_index(FILE* src_file, int pos_offset, FILE* dest_file )
+{   
+	char* buffer1=NULL;
+	int len1=file_read_buffer_by_head(src_file,&buffer1);
 
+	char* buffer2=NULL;
+	int len2=file_read_buffer_by_head(src_file,&buffer2);
 
-int Search_Index_File::file_read_buffer_by_head( FILE* file, char** buffer )
-{
-	assert(file!=NULL&&buffer!=NULL);
-	int ret=0;
-	fread((char*)&ret,1,4, file);
-	if ( ret<0 )
+	char* buffer3=NULL;
+	int len3=file_read_buffer_by_head(src_file,&buffer3);
+
+	std::vector<uint> pos_offset_vec;
+	regular_byte_decode((uchar*)buffer3,len3, pos_offset_vec);
+
+	int  begin_pos=pos_offset_vec[0];
+	for ( int i=0; i<pos_offset_vec.size();++i )
 	{
-		printf("file_get_buffer_by_head  index file is broken -f-.\n");
-		return -2;
+		pos_offset_vec[i]=pos_offset_vec[i]-begin_pos+pos_offset;
 	}
 
-	*buffer=new char[ret];
-	int len=fread(*buffer,1 , ret, file);
-	if ( len!=ret )
+	uint writen_len=0;
+	writen_len=file_write_buffer_with_head(dest_file, buffer1, len1);
+	writen_len+=file_write_buffer_with_head(dest_file,buffer2,len2);
+	
+	int len4=0;
+	char* buffer4=new char[4*pos_offset_vec.size()];
+	regular_byte_encode(pos_offset_vec,(uchar*)buffer4,&len4);
+	writen_len+=file_write_buffer_with_head(dest_file,buffer4,len4);
+
+	delete[] buffer1;
+	delete[] buffer2;
+	delete[] buffer3;
+	delete[] buffer4;
+
+	return writen_len;
+}
+
+/*
+**  合并有冲突
+**/
+int Search_Index_File::merge_doc_index(FILE* src_file1, FILE* src_file2, int pos_offset1, int pos_offset2 , FILE* dest_file )
+{  
+	std::vector<uint> doc_id_vec1;
+	std::vector<uint> doc_hits_vec1;
+	std::vector<uint> pos_offset_vec1;
+	int len1=read_item_from_doc_index(src_file1, (char)0x7, doc_id_vec1,  doc_hits_vec1, pos_offset_vec1 );
+
+	std::vector<uint> doc_id_vec2;
+	std::vector<uint> doc_hits_vec2;
+	std::vector<uint> pos_offset_vec2;
+	int len2=read_item_from_doc_index(src_file2, (char)0x7, doc_id_vec2,  doc_hits_vec2, pos_offset_vec2 );
+
+	std::vector<uint> doc_id_vec3;
+	std::vector<uint> doc_hits_vec3;
+	std::vector<uint> pos_offset_vec3;
+
+	int offset_begin1=pos_offset_vec1[0];
+	int offset_begin2=pos_offset_vec2[0];
+	int i=doc_id_vec1.size();
+	int j=doc_id_vec2.size();
+	while ( i<=doc_id_vec1.size()&&j<=doc_id_vec2.size() )
 	{
-		printf("file_get_buffer_by_head  index file is broken -s-. \n");
-		return -1;
+		if ( doc_id_vec1[i]<doc_id_vec2[j] )
+		{
+			doc_id_vec3.push_back(doc_id_vec1[i]);
+			doc_hits_vec3.push_back(doc_hits_vec1[i]);
+			pos_offset_vec3.push_back(pos_offset_vec1[i]-offset_begin1+pos_offset1);
+			i++;
+		}
+		else
+		{
+			doc_id_vec3.push_back(doc_id_vec2[j]);
+			doc_hits_vec3.push_back(doc_hits_vec2[j]);
+			pos_offset_vec3.push_back(pos_offset_vec2[j]-offset_begin2+pos_offset2);
+			j++;
+		}
 	}
+
+	while ( i<=doc_id_vec1.size() )
+	{
+		doc_id_vec3.push_back(doc_id_vec1[i]);
+		doc_hits_vec3.push_back(doc_hits_vec1[i]);
+		pos_offset_vec3.push_back(pos_offset_vec1[i]-offset_begin1+pos_offset1);
+		i++;
+	}
+
+	while( j<=doc_id_vec2.size() )
+	{
+		doc_id_vec3.push_back(doc_id_vec2[j]);
+		doc_hits_vec3.push_back(doc_hits_vec2[j]);
+		pos_offset_vec3.push_back(pos_offset_vec2[j]-offset_begin2+pos_offset2);
+		j++;
+	}
+
+	int len=write_item_to_doc_index(dest_file,doc_id_vec3,doc_hits_vec3,pos_offset_vec3);
+
 	return len;
 }
 
-int Search_Index_File::file_write_buffer_with_head( FILE* file, char* buffer, int length )
+int Search_Index_File::merge_pos_index(FILE* src_file , FILE* dest_file)
 {
-	assert(file!=NULL&&buffer!=NULL);
-	char* header=(char*)&length;
-	int ret=fwrite(header,1,4,file);
-	if ( ret!=4 )
+	char* buffer=NULL;
+	int len=file_read_buffer_by_head(src_file, &buffer);
+	if ( len<0 )
 	{
-		printf("file_write_buffer_with_head write header error. \n");
-		return -1;
-	}
-	ret=fwrite(buffer,1,length,file);
-	if ( ret!=length )
-	{
-		printf("file_write_buffer_with_head write body error. \n");
+		printf("merge_pos_index file_read_buffer_by_head error. \n");
 		return -1;
 	}
 
-	return 4+length;
+	int writen_len=0;
+	writen_len+=file_write_buffer_with_head(dest_file,buffer,len);
+	
+	delete[] buffer;
+	return writen_len;
 }
+
 ///////////////
 int Search_Index_File::write_item_to_doc_index( FILE* file, std::vector<uint>& doc_id_vec , std::vector<uint>& doc_hits_vec, std::vector<uint>& pos_offset_vec)
 {
@@ -392,36 +442,68 @@ int Search_Index_File::write_item_to_doc_index( FILE* file, std::vector<uint>& d
 	return writen_len;
 }
 
-int Search_Index_File::read_item_from_doc_index( FILE* file, std::vector<uint>& doc_id_vec , std::vector<uint>& doc_hits_vec, std::vector<uint>& pos_offset_vec )
+int Search_Index_File::read_item_from_doc_index( FILE* file, char bitmap ,std::vector<uint>& doc_id_vec , std::vector<uint>& doc_hits_vec, std::vector<uint>& pos_offset_vec )
 {
+#define MOVE_FILE_POINTER() \
+	int len=0;\
+	int l=fread((char*)&len,1,4,file);\
+	if ( l!=4 ){\
+		printf("read_item_from_doc_index  header broken. \n");\
+		return -1;\
+	}fseek(file,len, SEEK_CUR);
+
 	char* buffer=NULL;
-	int buffer_len=file_read_buffer_by_head(file, &buffer);
-
-
-	return 0;
-}
-
-int Search_Index_File::read_item_from_doc_index( FILE* file, uint& doc_id, std::vector<uint>& positions )
-{
-	char* buffer=NULL;
-	int length=file_read_buffer_by_head(file, &buffer);
-	if ( length<=0 )
-	{
-		printf("read_item_from_doc_index error. \n");
-		return -1;
+	int buffer_len=0;
+	if ( ((int)(bitmap&0x1))==1 )
+	{	//读取doc_id_vec
+		buffer_len=file_read_buffer_by_head(file, &buffer);
+		if ( buffer_len<0)
+		{
+			printf("read_item_from_doc_index read doc_id_list error. \n");
+			return -1;
+		}
+		variable_byte_decode((uchar*)buffer,buffer_len,doc_id_vec);
+		delete[] buffer; buffer=NULL;
 	}
-	char* p=buffer;
-	doc_id=atoi(p);
-	
-	while(*p!='#')++p;
-	int nhits=atoi(++p);
-	while(*p!='#')++p;
-	++p;
-	variable_byte_decode((uchar*)p, length-(p-buffer), positions );
+	else if ( (int)(bitmap>>1)>0 )
+	{
+		MOVE_FILE_POINTER();
+	}
 
-	delete[] buffer;
+	if ( (int)((bitmap>>1)&0x1)==1 )
+	{	//读取doc_hits_vec
+		buffer_len=file_read_buffer_by_head(file,&buffer);
+		if ( buffer_len<0 )
+		{
+			printf("read_item_from_doc_index read doc_hits_list error. \n");
+			return -1;
+		}
+		regular_byte_decode((uchar*)buffer, buffer_len,doc_hits_vec);
+		delete[] buffer; buffer=NULL;
+	}
+	else if ( (int)(bitmap>>2)>0 )
+	{
+		MOVE_FILE_POINTER();
+	}
+
+	if ( (int)((bitmap>>2)&0x1)==1 )
+	{	//读取pos_offset_vec
+		buffer_len=file_read_buffer_by_head(file,&buffer);
+		if ( buffer_len<0 )
+		{
+			printf("read_item_from_doc_index read pos_offset_vec .\n");
+			return -1;
+		}
+		regular_byte_decode((uchar*)buffer,buffer_len,pos_offset_vec);
+		delete[] buffer; buffer=NULL;
+	}
+	else if ( (int)(bitmap>>3)>0 )
+	{
+		MOVE_FILE_POINTER();
+	}
 	return 0;
 }
+
 /////////////
 int Search_Index_File::write_item_to_pos_index(FILE* file, std::vector<uint> poss)
 {
@@ -456,6 +538,57 @@ int Search_Index_File::read_item_from_pos_index(FILE* file, std::vector<uint>& p
 	return 0;
 }
 
+//////////////////////
+int Search_Index_File::file_read_buffer_by_head( FILE* file, char** buffer )
+{
+	assert(file!=NULL&&buffer!=NULL);
+	int ret=0;
+	fread((char*)&ret,1,4, file);
+	if ( ret<0 )
+	{
+		printf("file_get_buffer_by_head  index file is broken -f-.\n");
+		return -2;
+	}
+
+	*buffer=new char[ret];
+	int len=fread(*buffer,1 , ret, file);
+	if ( len!=ret )
+	{
+		printf("file_get_buffer_by_head  index file is broken -s-. \n");
+		return -1;
+	}
+	return len;
+}
+
+int Search_Index_File::file_quick_read_special_bits( FILE* file, int offset ,char* buffer, int length )
+{
+	assert(file!=NULL&&buffer!=NULL);
+	fseek(file ,offset+4 ,SEEK_CUR); 
+	
+	int ret=fread(buffer,1, length, file);
+	return ret;
+}
+
+int Search_Index_File::file_write_buffer_with_head( FILE* file, char* buffer, int length )
+{
+	assert(file!=NULL&&buffer!=NULL);
+	char* header=(char*)&length;
+	int ret=fwrite(header,1,4,file);
+	if ( ret!=4 )
+	{
+		printf("file_write_buffer_with_head write header error. \n");
+		return -1;
+	}
+	ret=fwrite(buffer,1,length,file);
+	if ( ret!=length )
+	{
+		printf("file_write_buffer_with_head write body error. \n");
+		return -1;
+	}
+
+	return 4+length;
+}
+
 int Search_Index_File::clean()
 {
 	for (std::map<uint, WordIndex*>::iterator iter=m_words.begin(); iter!=m_words.end() ;++iter )
@@ -465,8 +598,9 @@ int Search_Index_File::clean()
 	m_word_pos.clear();
 	m_words.clear();
 
-	truncate_file(get_word_index_file_path().c_str());
-	truncate_file(get_doc_index_file_path().c_str());
+	//truncate_file(get_word_index_file_path().c_str());
+	//truncate_file(get_doc_index_file_path().c_str());
+	//truncate_file(get_position_file_path().c_str());
 
 	return 0;
 }
@@ -477,10 +611,10 @@ Search_Index_File_Manager::Search_Index_File_Manager()
 {
 	m_doc_count=0;
 	m_main_index_file=new Search_Index_File();
-	m_main_index_file->set_index_file_path(get_core_path()+kMainWordIndex , get_core_path()+kMainDocIndex);
+	m_main_index_file->set_index_file_path(get_core_path() , "main_" );
 
 	m_temp_index_file=new Search_Index_File();
-	m_temp_index_file->set_index_file_path(get_core_path()+kTempWordIndex , get_core_path()+kTempDocIndex);
+	m_temp_index_file->set_index_file_path(get_core_path() , "temp_");
 }
 
 Search_Index_File_Manager::~Search_Index_File_Manager()
@@ -497,7 +631,8 @@ int Search_Index_File_Manager::add_doc( DocumentIndex* doc )
 	if ( m_doc_count%50==0 )
 	{
 		save_index();
-	}
+	} 
+
 	return 0;
 }
 
@@ -523,12 +658,13 @@ Search_Index::Search_Index()
 
 Search_Index::~Search_Index()
 {
+	fclose(m_pos_index_file);
 	fclose(m_doc_index_file);
 }
 
 int Search_Index::initialize()
 {
-	set_index_file_path(get_core_path()+kMainWordIndex ,get_core_path()+kMainDocIndex);
+	set_index_file_path(get_core_path() ,"main_");
 
 	if ( 0!=load_word_index() )
 	{
@@ -542,7 +678,14 @@ int Search_Index::initialize()
 		printf("Search_Index_File::initialize open doc_index_file failed.\n");
 		return -1;
 	}
-	
+
+	m_pos_index_file=fopen(m_position_file_path.c_str(),"rb");
+	if ( m_pos_index_file==NULL )
+	{
+		printf("Search_Index_File::initialize open pos_file_path failed.\n");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -556,14 +699,16 @@ int Search_Index::query_word( int word_id, std::set<uint>& doc_id_set )
 	if ( iter!=m_word_pos.end() )
 	{
 		uint doc_count=iter->second.doc_count;
-		uint64_t offset=iter->second.start_offset;
-
-		fseek(m_doc_index_file, offset, SEEK_SET);
-		char buffer[1024];
-		while ( NULL!=fgets(buffer,1024, m_doc_index_file) )
+		uint64_t start_offset=iter->second.start_offset;
+		uint64_t end_offset=iter->second.end_offset;
+		fseek(m_doc_index_file, start_offset, SEEK_SET);
+		
+		std::vector<uint> doc_id_vec;
+		std::vector<uint> null;
+		int buffer_len=read_item_from_doc_index(m_doc_index_file, (char)0x1, doc_id_vec, null,null );
+		for ( int i=0;i<doc_id_vec.size(); ++i )
 		{
-			uint doc_id=atoi(buffer);
-			doc_id_set.insert(doc_id);
+			doc_id_set.insert(doc_id_vec[i]);
 		}
 	}
 	return 0;
@@ -583,7 +728,7 @@ float Search_Index::get_word_IDF( int word_id )
 	return result;
 }
 
-// 获取在doc_id 中 word_id的数量
+// 获取在docs中 此word的数量
 int Search_Index::get_doc_word_count(uint doc_id, uint word_id)
 {
 	std::map<uint, TermIndexItem>::iterator iter = m_word_pos.find(word_id);
@@ -592,21 +737,32 @@ int Search_Index::get_doc_word_count(uint doc_id, uint word_id)
 		uint64_t offset=iter->second.start_offset;
 		fseek(m_doc_index_file,offset, SEEK_SET);
 		//本文档中此单词的个数
-		char buffer[1024];
-		while ( NULL!=fgets(buffer,1024, m_doc_index_file) )
+
+		std::vector<uint> doc_id_vec;
+		std::vector<uint> null;
+		int ret=read_item_from_doc_index(m_doc_index_file,(char)0x1, doc_id_vec, null, null);
+		if ( ret!=0 )
 		{
-			uint id=atoi(buffer);
-			if ( doc_id==id )
-			{
-				char* p=buffer;
-				while (*p!='#')++p;
-				int count=atoi(++p);
-				return count;
-			}
+			printf("get_doc_word_count  read_item_from_doc_index error. \n");
+			return -1;
 		}
+
+		//doc_ids 已经排序
+		std::vector<uint>::iterator iter2=std::lower_bound(doc_id_vec.begin() , doc_id_vec.end(), word_id); /*二分搜索  限定范围减少搜索的时间*/
+		int index = iter2 - doc_id_vec.begin();
+		
+		int count=0;
+		ret=file_quick_read_special_bits(m_doc_index_file, index*4, (char*)&count, 4 );
+		if (  ret!=4 )
+		{
+			printf("get_doc_word_count  file_quick_read_special_bits error. \n ");
+			return -1;
+		}
+
+		return count;
 	}
 	
-	return 0;
+	return -1;
 }
 
 int Search_Index::get_doc_total_word_count(uint doc_id)

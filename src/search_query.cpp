@@ -104,7 +104,12 @@ float Search_Query::get_similarity(PairVec& query_vec, std::set<uint>& doc_list 
 		PairVec doc_vec;
 		for ( uint i=0; i<query_vec.size(); ++i )
 		{
-			doc_vec.push_back(std::make_pair(query_vec[i].first, g_Index_Query.get_doc_word_count(doc_id, query_vec[i].first) ));
+			int  count=g_Index_Query.get_doc_word_count(doc_id, query_vec[i].first);
+			if ( count<0 )
+			{
+				printf("get_similarity get_doc_word_count warnning! count is %d \n", count);
+			}
+			doc_vec.push_back(std::make_pair(query_vec[i].first, count ));
 		}
 
 		int doc_word_sum=g_Index_Query.get_doc_total_word_count(doc_id); //std::accumulate(doc_vec.begin(), doc_vec.end(), doc_word_sum ,PairVecPlusFunc());

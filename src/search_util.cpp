@@ -66,7 +66,6 @@ void variable_byte_encode( std::vector<uint>& arrays, uchar* buffer ,int* length
 				c=((t>>(7*j))<<1);
 			buffer[*length]=c;
 			(*length)++;
-			//print_binary(c);
 		}
 	}
 }
@@ -119,7 +118,6 @@ void regular_byte_encode( std::vector<uint>& arrays, uchar* buffer, int* length 
 
 void regular_byte_decode( uchar* buffer, int len, std::vector<uint>& arrays )
 {
-	char buffer[4]={0};
 	for (int i=0; i<len ; i+=4 )
 	{
 		int value;
