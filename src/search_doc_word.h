@@ -1,3 +1,8 @@
+/*
+**    Manage the information of words and documents. 
+**    Saved in DB which using B+Tree DB .
+*/
+
 #ifndef  __SEARCH_INDEX_STRUCT_H__
 #define __SEARCH_INDEX_STRUCT_H__
 
@@ -8,6 +13,7 @@
 #include <list>
 
 #include "search_define.h"
+#include "search_db.h"
 
 struct Word
 {
@@ -49,6 +55,7 @@ public:
 private:
 	Search_WordId();
 	std::map<uint, std::string>  m_words;
+	Search_DB*   m_word_db;
 };
 
 #define g_DocId Search_DocID::instance()
@@ -76,8 +83,9 @@ private:
 		uint          word_count;
 	};
 
-	uint64_t m_docs_count;
+	uint64_t       m_docs_count;
 	std::map<uint, DocInfo*> m_documents;
+	Search_DB*  m_docs_db;
 };
 
 #endif

@@ -4,8 +4,8 @@
 #include <set>
 #include "search_util.h"
 
-typedef  std::vector<std::pair<uint,int>> PairVec;
-typedef  std::pair<uint,double>              QueryPair;
+typedef  std::vector<std::pair<uint,int>> PairVec;     /*  */
+typedef  std::pair<uint,double>              QueryPair;   /*ŒƒµµID-”‡œ“÷µ*/
 
 #define g_Query Search_Query::instance()
 class Search_Query

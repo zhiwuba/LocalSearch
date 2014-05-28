@@ -79,7 +79,6 @@ int Search_Query::query( std::string question )
 float Search_Query::get_similarity(PairVec& query_vec, std::set<uint>& doc_list , std::vector<QueryPair>& result_vec )
 {
 	//TF-IDF
-	std::vector<float>  doc_TFIDF_vec;  //文档向量
 	std::vector<float>  query_TFIDF_vec; //查询向量
 
 	// 计算查询词的参数
@@ -101,7 +100,7 @@ float Search_Query::get_similarity(PairVec& query_vec, std::set<uint>& doc_list 
 	{
 		uint doc_id=*iter;
 
-		PairVec doc_vec;
+		PairVec doc_vec;  /*word_id -- doc中此word的数量*/
 		for ( uint i=0; i<query_vec.size(); ++i )
 		{
 			int  count=g_Index_Query.get_doc_word_count(doc_id, query_vec[i].first);
@@ -111,6 +110,8 @@ float Search_Query::get_similarity(PairVec& query_vec, std::set<uint>& doc_list 
 			}
 			doc_vec.push_back(std::make_pair(query_vec[i].first, count ));
 		}
+		
+		std::vector<float>  doc_TFIDF_vec;  //文档向量
 
 		int doc_word_sum=g_Index_Query.get_doc_total_word_count(doc_id); //std::accumulate(doc_vec.begin(), doc_vec.end(), doc_word_sum ,PairVecPlusFunc());
 		for ( uint i=0; i<doc_vec.size(); ++i )

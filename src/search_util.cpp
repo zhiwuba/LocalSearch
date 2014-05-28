@@ -66,22 +66,26 @@ void variable_byte_encode( std::vector<uint>& arrays, uchar* buffer ,int* length
 				c=((t>>(7*j))<<1);
 			buffer[*length]=c;
 			(*length)++;
+			//print_binary(c);
 		}
 	}
 }
 
 void variable_byte_decode( uchar* buffer, int len ,std::vector<uint>& arrays )
 {
+	int i=0;
 	const uchar* p=buffer;
-	while ( *p!='\0' )
+	while ( i<len )
 	{
 		uint v=(uint)((*p)>>1);
 		while ( (uint)((*p)&0x1)== 1  )
 		{
 			++p;
+			++i;
 			v=((v<<7)|((*p)>>1));
 		}
 		++p;
+		++i;
 		arrays.push_back(v);
 	}
 }

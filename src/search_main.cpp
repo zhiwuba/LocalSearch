@@ -28,7 +28,6 @@ int test()
 
 int main()
 {
-	test();
 
 #if 1
 	long startTime=GetTickCount();

@@ -347,9 +347,8 @@ int Search_Index_File::merge_doc_index(FILE* src_file1, FILE* src_file2, int pos
 
 	int offset_begin1=pos_offset_vec1[0];
 	int offset_begin2=pos_offset_vec2[0];
-	int i=doc_id_vec1.size();
-	int j=doc_id_vec2.size();
-	while ( i<=doc_id_vec1.size()&&j<=doc_id_vec2.size() )
+	int i=0, j=0;
+	while ( i<doc_id_vec1.size()&&j<doc_id_vec2.size() )
 	{
 		if ( doc_id_vec1[i]<doc_id_vec2[j] )
 		{
@@ -367,7 +366,7 @@ int Search_Index_File::merge_doc_index(FILE* src_file1, FILE* src_file2, int pos
 		}
 	}
 
-	while ( i<=doc_id_vec1.size() )
+	while ( i<doc_id_vec1.size() )
 	{
 		doc_id_vec3.push_back(doc_id_vec1[i]);
 		doc_hits_vec3.push_back(doc_hits_vec1[i]);
@@ -375,7 +374,7 @@ int Search_Index_File::merge_doc_index(FILE* src_file1, FILE* src_file2, int pos
 		i++;
 	}
 
-	while( j<=doc_id_vec2.size() )
+	while( j<doc_id_vec2.size() )
 	{
 		doc_id_vec3.push_back(doc_id_vec2[j]);
 		doc_hits_vec3.push_back(doc_hits_vec2[j]);
@@ -598,9 +597,9 @@ int Search_Index_File::clean()
 	m_word_pos.clear();
 	m_words.clear();
 
-	//truncate_file(get_word_index_file_path().c_str());
-	//truncate_file(get_doc_index_file_path().c_str());
-	//truncate_file(get_position_file_path().c_str());
+	truncate_file(get_word_index_file_path().c_str());
+	truncate_file(get_doc_index_file_path().c_str());
+	truncate_file(get_position_file_path().c_str());
 
 	return 0;
 }
