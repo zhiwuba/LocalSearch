@@ -11,23 +11,43 @@
 #include "search_query.h"
 #include "search_crawl.h"
 #include "search_segment.h"
+#include "search_db.h"
+
+struct Value 
+{
+	char name[30];
+	int    count;
+	char value[30];
+};
 
 int test()
 {
-	int len=0;
-	uchar buffer[10];
-	std::vector<uint> vec1;
-	vec1.push_back(2563);
-	variable_byte_encode(vec1,buffer,&len);
+	Search_DB db("D:\\Workspace\\LocalSearch\\bin\\test.db",true);
+	
+	for ( int i=0; i<500; i++ )
+	{
+		Value vv={"namename",i,"valuevalue"};
+		int a=sizeof(vv);
+		value_t v={ sizeof(vv) , &vv };
+		db.insert(i, v);
+	}
 
-	std::vector<uint> vec2;
-	variable_byte_decode(buffer,len, vec2);
+
+	Value vv;
+	value_t v={sizeof(vv),(void*)&vv};
+	db.search(300, &v);
+	printf("v %s %d  %s\n",vv.name, vv.count, v.value);
+
+	db.remove(100);
+	db.remove(101);
 
 	return 0;
 }
 
+
 int main()
 {
+	test();
 
 #if 1
 	long startTime=GetTickCount();

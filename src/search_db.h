@@ -17,21 +17,17 @@
 
 
 /* key/value type */
-typedef int  value_t;
+typedef struct
+{
+	int     len;
+	void* value;
+}value_t;
 
-struct key_t {
-	char k[16];
+typedef int  key_t;
 
-	key_t(const char *str = "")
-	{
-		memset(k, 0 , sizeof(k));
-		strcpy(k, str);
-	}
-};
 
 inline int keycmp(const key_t &a, const key_t &b) {
-	int x = strlen(a.k) - strlen(b.k);
-	return x == 0 ? strcmp(a.k, b.k) : x;
+	return a-b;
 }
 
 #define OPERATOR_KEYCMP(type) \

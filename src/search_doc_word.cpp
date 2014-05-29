@@ -4,12 +4,12 @@
 Search_WordId::Search_WordId()
 {
 	std::string  db_path=get_core_path()+"word_info.db";
-	m_word_db=new Search_DB( db_path.c_str() ,false);
+	//m_word_db=new Search_DB( db_path.c_str() ,false);
 }
 
 Search_WordId::~Search_WordId()
 {
-	delete m_word_db;
+	//delete m_word_db;
 }
 
 std::string Search_WordId::get_word( uint word_id )
@@ -33,12 +33,12 @@ Search_DocID::Search_DocID()
 {
 	m_docs_count=0;
 	std::string db_path=get_core_path()+"docs_info.db";
-	m_docs_db=new Search_DB(db_path.c_str(), false);
+	//m_docs_db=new Search_DB(db_path.c_str(), false);
 }
 
 Search_DocID::~Search_DocID()
 {
-	delete m_docs_db;
+	//delete m_docs_db;
 }
 
 std::string Search_DocID::get_doc_path( uint doc_id )

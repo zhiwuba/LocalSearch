@@ -55,7 +55,7 @@ public:
 private:
 	Search_WordId();
 	std::map<uint, std::string>  m_words;
-	Search_DB*   m_word_db;
+	//Search_DB*   m_word_db;
 };
 
 #define g_DocId Search_DocID::instance()
@@ -85,7 +85,7 @@ private:
 
 	uint64_t       m_docs_count;
 	std::map<uint, DocInfo*> m_documents;
-	Search_DB*  m_docs_db;
+	//Search_DB*  m_docs_db;
 };
 
 #endif
