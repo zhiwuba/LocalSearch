@@ -258,28 +258,4 @@ private:
 
 
 
-//class Search_DB
-//{
-//public:
-//	Search_DB(const char* db_path);
-//	~Search_DB();
-//
-//	/* base operator */
-//	int add_item(int key, Value* value);
-//	int delete_item(int key);
-//	int update_item(int key, Value* value);
-//	int search_item(int key, Value& value);
-//
-//
-//protected:
-//	int bp_tree_search(Node* node, int key);
-//
-//
-//private:
-//	
-//	BPTree_Meta* m_bp_tree;
-//	std::string        m_db_path;
-//
-//};
-
 #endif

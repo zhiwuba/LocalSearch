@@ -81,6 +81,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\search_crawl.cpp" />
+    <ClCompile Include="..\src\search_db.cpp" />
     <ClCompile Include="..\src\search_doc_word.cpp" />
     <ClCompile Include="..\src\search_index.cpp" />
     <ClCompile Include="..\src\search_parser.cpp" />
@@ -92,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\search_crawl.h" />
+    <ClInclude Include="..\src\search_db.h" />
     <ClInclude Include="..\src\search_define.h" />
     <ClInclude Include="..\src\search_doc_word.h" />
     <ClInclude Include="..\src\search_index.h" />
