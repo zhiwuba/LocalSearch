@@ -33,7 +33,7 @@ inline record_t *find(leaf_node_t &node, const key_t &key) {
 	return lower_bound(begin(node), end(node), key);
 }
 
-Search_DB::Search_DB(const char *p, bool force_empty)
+Search_DB::Search_DB(const char *p, int value_size ,bool force_empty)
 	: fp(NULL), fp_level(0)
 {
 	memset(path, 0 ,sizeof(path));
@@ -48,12 +48,12 @@ Search_DB::Search_DB(const char *p, bool force_empty)
 		open_file("w+"); // truncate file
 
 		// create empty tree if file doesn't exist
-		init_from_empty();
+		init_from_empty(value_size);
 		close_file();
 	}
 }
 
-int Search_DB::search(const key_t& key, value_t *value) const
+int Search_DB::search(const key_t& key, value_t value) const
 {
 	leaf_node_t leaf;
 	map(&leaf, search_leaf(key));
@@ -62,7 +62,7 @@ int Search_DB::search(const key_t& key, value_t *value) const
 	record_t *record = find(leaf, key);
 	if (record != leaf.children + leaf.n) {
 		// always return the lower bound
-		*value = record->value;
+		memcpy(value , record->value, meta.value_size);
 
 		return keycmp(record->key, key);
 	} else {
@@ -583,7 +583,7 @@ void Search_DB::reset_index_children_parent(index_t *begin, index_t *end,
 	while (begin != end) {
 		map(&node, begin->child);
 		node.parent = parent;
-		unmap(&node, begin->child, SIZE_NO_CHILDREN);
+		unmap(&node, begin->child); //, SIZE_NO_CHILDREN);
 		++begin;
 	}
 }
@@ -624,9 +624,9 @@ void Search_DB::node_create(off_t offset, T *node, T *next)
 	// update next node's prev
 	if (next->next != 0) {
 		T old_next;
-		map(&old_next, next->next, SIZE_NO_CHILDREN);
+		map(&old_next, next->next); //, SIZE_NO_CHILDREN);
 		old_next.prev = node->next;
-		unmap(&old_next, next->next, SIZE_NO_CHILDREN);
+		unmap(&old_next, next->next); //, SIZE_NO_CHILDREN);
 	}
 	unmap(&meta, OFFSET_META);
 }
@@ -638,19 +638,19 @@ void Search_DB::node_remove(T *prev, T *node)
 	prev->next = node->next;
 	if (node->next != 0) {
 		T next;
-		map(&next, node->next, SIZE_NO_CHILDREN);
+		map(&next, node->next); //, SIZE_NO_CHILDREN);
 		next.prev = node->prev;
-		unmap(&next, node->next, SIZE_NO_CHILDREN);
+		unmap(&next, node->next); //, SIZE_NO_CHILDREN);
 	}
 	unmap(&meta, OFFSET_META);
 }
 
-void Search_DB::init_from_empty()
+void Search_DB::init_from_empty(int value_size)
 {
 	// init default meta
 	memset(&meta, 0, sizeof(meta_t));
 	meta.order = BP_ORDER;
-	meta.value_size = sizeof(value_t);
+	meta.value_size = value_size;
 	meta.key_size = sizeof(key_t);
 	meta.height = 1;
 	meta.slot = OFFSET_BLOCK;
@@ -670,5 +670,104 @@ void Search_DB::init_from_empty()
 	unmap(&meta, OFFSET_META);
 	unmap(&root, meta.root_offset);
 	unmap(&leaf, root.children[0].child);
+}
+
+int Search_DB::unmap(meta_t* meta_ ,off_t offset)
+{
+	open_file();
+	fseek(fp, offset, SEEK_SET);
+	size_t wd = fwrite((void*)meta_, sizeof(meta_t), 1, fp);
+	close_file();
+	return wd;
+}
+
+
+int Search_DB::unmap( leaf_node_t* block, off_t offset ) 
+{
+	open_file();
+	fseek(fp, offset, SEEK_SET);
+	fwrite((char*)&block->parent, 1, 4, fp);
+	fwrite((char*)&block->next, 1, 4, fp);
+	fwrite((char*)&block->prev,1, 4, fp);
+	fwrite((char*)&block->n ,1, 4, fp);
+
+	for ( int i=0; i<block->n; ++i )
+	{
+		fwrite((char*)&block->children[i].key,1,4, fp);
+		fwrite(block->children[i].value, 1, meta.value_size, fp);
+		delete[] block->children[i].value;
+	}
+	int  write_len=16+BP_ORDER*(4+meta.value_size);
+
+	close_file();
+	return write_len;
+}
+
+int Search_DB::unmap( internal_node_t* block, off_t offset )
+{
+	open_file();
+	fseek(fp, offset, SEEK_SET);
+	fwrite((char*)&block->parent, 1, 4, fp);
+	fwrite((char*)&block->next, 1, 4, fp);
+	fwrite((char*)&block->prev,1, 4, fp);
+	fwrite((char*)&block->n ,1, 4, fp);
+
+	for ( int i=0; i<block->n; ++i )
+	{
+		fwrite((char*)&block->children[i].key,1,4, fp);
+		fwrite((char*)&block->children[i].child, 1, 4, fp);
+	}
+
+	close_file();
+	return  16+BP_ORDER*8;
+}
+
+int Search_DB::map(meta_t* meta_, off_t offset) const
+{
+	open_file();
+	fseek(fp, offset, SEEK_SET);
+	size_t rd = fread((void*)meta_, sizeof(meta_t), 1, fp);
+	close_file();
+	return rd;
+}
+
+int Search_DB::map( internal_node_t* block, off_t offset ) const
+{
+	open_file();
+	fseek(fp, offset, SEEK_SET);
+	fread((char*)&block->parent, 1, 4, fp);
+	fread((char*)&block->next, 1, 4, fp);
+	fread((char*)&block->prev,1, 4, fp);
+	fread((char*)&block->n ,1, 4, fp);
+
+	for ( int i=0; i<block->n; ++i )
+	{
+		fread((char*)&block->children[i].key,1,4, fp);
+		fread((char*)&block->children[i].child, 1, 4, fp);
+	}
+
+	close_file();
+	return 16+BP_ORDER*8;
+}
+
+int Search_DB::map( leaf_node_t* block, off_t offset ) const
+{
+	open_file();
+	fseek(fp, offset, SEEK_SET);
+	fread((char*)&block->parent, 1, 4, fp);
+	fread((char*)&block->next, 1, 4, fp);
+	fread((char*)&block->prev,1, 4, fp);
+	fread((char*)&block->n ,1, 4, fp);
+
+	for ( int i=0; i<block->n; ++i )
+	{
+		fread((char*)&block->children[i].key,1,4, fp);
+		block->children[i].value=new char[meta.value_size];
+		fread(block->children[i].value, 1, meta.value_size, fp);
+	}
+	int  read_len=16+BP_ORDER*(4+meta.value_size);
+
+	close_file();
+	return read_len;
 }
 

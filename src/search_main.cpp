@@ -22,21 +22,23 @@ struct Value
 
 int test()
 {
-	Search_DB db("D:\\Workspace\\LocalSearch\\bin\\test.db",true);
+	int value_size=sizeof(Value);
+
+	Search_DB db("D:\\Workspace\\LocalSearch\\bin\\test.db", value_size,  true);
 	
-	for ( int i=0; i<500; i++ )
+	for ( int i=0; i<10000000; i++ )
 	{
-		Value vv={"namename",i,"valuevalue"};
-		int a=sizeof(vv);
-		value_t v={ sizeof(vv) , &vv };
-		db.insert(i, v);
+		Value* vv=new Value;
+		strcpy(vv->name, "namename");
+		vv->count=i ; 
+		strcpy( vv->value, "valuevalue");
+		db.insert(i, vv);
+		printf(" %d \n", i);
 	}
 
-
-	Value vv;
-	value_t v={sizeof(vv),(void*)&vv};
-	db.search(300, &v);
-	printf("v %s %d  %s\n",vv.name, vv.count, v.value);
+	Value* vv=(Value*)new char[value_size];
+	db.search(300, vv);
+	printf("v %s %d  %s\n",vv->name, vv->count, vv->value);
 
 	db.remove(100);
 	db.remove(101);
@@ -47,8 +49,7 @@ int test()
 
 int main()
 {
-	test();
-
+#if 1
 #if 1
 	long startTime=GetTickCount();
 	g_Crawl.traverse_directory("D:\\Workspace\\LocalSearch\\msvc\\Data");
@@ -74,6 +75,7 @@ int main()
 		//printf("query cost time : %d \n", costTime);
 	}
 
+#endif
 
 	return 0;
 }

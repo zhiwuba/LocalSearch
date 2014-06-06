@@ -1,7 +1,7 @@
 /* 
 **   B+Tree DB
 **   CopyRight Cheng Zhao. https://github.com/zcbenz/BPlusTree
-**   TODO:  realize by myself later.
+**   change:  now can store struct. 
 **/
 #ifndef  __SEARCH_DB_H__
 #define __SEARCH_DB_H__
@@ -17,11 +17,7 @@
 
 
 /* key/value type */
-typedef struct
-{
-	int     len;
-	void* value;
-}value_t;
+typedef void*  value_t;
 
 typedef int  key_t;
 
@@ -79,7 +75,7 @@ struct internal_node_t {
 
 /* the final record of value */
 struct record_t {
-    key_t key;
+    key_t    key;
     value_t value;
 };
 
@@ -97,10 +93,10 @@ struct leaf_node_t {
 /* the encapulated B+ tree */
 class Search_DB {
 public:
-    Search_DB(const char *path, bool force_empty = false);
+    Search_DB(const char *path, int value_size, bool force_empty = false);
 
     /* abstract operations */
-    int search(const key_t& key, value_t *value) const;
+    int search(const key_t& key, value_t value) const;
     int search_range(key_t *left, const key_t &right,
                      value_t *values, size_t max, bool *next = NULL) const;
     int remove(const key_t& key);
@@ -109,6 +105,8 @@ public:
     meta_t get_meta() const {
         return meta;
     };
+	
+	int set_value_length(int len){ meta.value_size=len; };
 
 
 private:
@@ -116,7 +114,7 @@ private:
     meta_t meta;
 
     /* init empty tree */
-    void init_from_empty();
+    void init_from_empty(int value_size);
 
     /* find index */
     off_t search_index(const key_t &key) const;
@@ -200,14 +198,16 @@ private:
     {
         leaf->n = 0;
         meta.leaf_node_num++;
-        return alloc(sizeof(leaf_node_t));
+		int len=16+BP_ORDER*(4+meta.value_size);
+        return alloc(len);
     }
 
     off_t alloc(internal_node_t *node)
     {
         node->n = 1;
         meta.internal_node_num++;
-        return alloc(sizeof(internal_node_t));
+		int len=16+BP_ORDER*8;
+        return alloc(len);
     }
 
     void unalloc(leaf_node_t *leaf, off_t offset)
@@ -221,41 +221,14 @@ private:
     }
 
     /* read block from disk */
-    int map(void *block, off_t offset, size_t size) const
-    {
-        open_file();
-        fseek(fp, offset, SEEK_SET);
-        size_t rd = fread(block, size, 1, fp);
-        close_file();
-
-        return rd - 1;
-    }
-
-    template<class T>
-    int map(T *block, off_t offset) const
-    {
-        return map(block, offset, sizeof(T));
-    }
+    int map(meta_t* meta_, off_t offset) const;
+	int map(leaf_node_t* block, off_t offset) const;
+	int map(internal_node_t* block,  off_t offset) const;
 
     /* write block to disk */
-    int unmap(void *block, off_t offset, size_t size) const
-    {
-        open_file();
-        fseek(fp, offset, SEEK_SET);
-        size_t wd = fwrite(block, size, 1, fp);
-        close_file();
-
-        return wd - 1;
-    }
-
-    template<class T>
-    int unmap(T *block, off_t offset) const
-    {
-        return unmap(block, offset, sizeof(T));
-    }
+    int unmap(meta_t* meta_, off_t offset);
+	int unmap(leaf_node_t* block, off_t offset);
+	int unmap(internal_node_t* block, off_t offset);
 };
-
-
-
 
 #endif
