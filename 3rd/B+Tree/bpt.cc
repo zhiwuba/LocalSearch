@@ -583,7 +583,7 @@ void bplus_tree::reset_index_children_parent(index_t *begin, index_t *end,
     while (begin != end) {
         map(&node, begin->child);
         node.parent = parent;
-        unmap(&node, begin->child, SIZE_NO_CHILDREN);
+        unmap(&node, begin->child); //, SIZE_NO_CHILDREN);
         ++begin;
     }
 }
@@ -624,9 +624,9 @@ void bplus_tree::node_create(off_t offset, T *node, T *next)
     // update next node's prev
     if (next->next != 0) {
         T old_next;
-        map(&old_next, next->next, SIZE_NO_CHILDREN);
+        map(&old_next, next->next); //, SIZE_NO_CHILDREN);
         old_next.prev = node->next;
-        unmap(&old_next, next->next, SIZE_NO_CHILDREN);
+        unmap(&old_next, next->next); //, SIZE_NO_CHILDREN);
     }
     unmap(&meta, OFFSET_META);
 }
@@ -638,9 +638,9 @@ void bplus_tree::node_remove(T *prev, T *node)
     prev->next = node->next;
     if (node->next != 0) {
         T next;
-        map(&next, node->next, SIZE_NO_CHILDREN);
+        map(&next, node->next); //, SIZE_NO_CHILDREN);
         next.prev = node->prev;
-        unmap(&next, node->next, SIZE_NO_CHILDREN);
+        unmap(&next, node->next); //, SIZE_NO_CHILDREN);
     }
     unmap(&meta, OFFSET_META);
 }

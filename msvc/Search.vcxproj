@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\..\3rd\scws-1.2.2\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\..\3rd\scws-1.2.2\;$(SolutionDir)\..\3rd\sqlite\;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)..\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -54,12 +54,16 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libscws.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libscws.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -83,6 +87,7 @@
     <ClCompile Include="..\src\search_crawl.cpp" />
     <ClCompile Include="..\src\search_db.cpp" />
     <ClCompile Include="..\src\search_doc_word.cpp" />
+    <ClCompile Include="..\src\search_http_server.cpp" />
     <ClCompile Include="..\src\search_index.cpp" />
     <ClCompile Include="..\src\search_parser.cpp" />
     <ClCompile Include="..\src\search_main.cpp" />
@@ -90,18 +95,23 @@
     <ClCompile Include="..\src\search_query.cpp" />
     <ClCompile Include="..\src\search_segment.cpp" />
     <ClCompile Include="..\src\search_util.cpp" />
+    <ClCompile Include="..\src\sqlite\CppSQLite3U.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\search_crawl.h" />
     <ClInclude Include="..\src\search_db.h" />
     <ClInclude Include="..\src\search_define.h" />
     <ClInclude Include="..\src\search_doc_word.h" />
+    <ClInclude Include="..\src\search_http_server.h" />
     <ClInclude Include="..\src\search_index.h" />
     <ClInclude Include="..\src\search_parser.h" />
     <ClInclude Include="..\src\search_md5.h" />
     <ClInclude Include="..\src\search_query.h" />
     <ClInclude Include="..\src\search_segment.h" />
     <ClInclude Include="..\src\search_util.h" />
+    <ClInclude Include="..\src\sqlite\CppSQLite3U.h" />
+    <ClInclude Include="..\src\sqlite\sqlite3.h" />
+    <ClInclude Include="..\src\sqlite\sqlite3ext.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

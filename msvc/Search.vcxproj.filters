@@ -1,81 +1,100 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="源文件">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="头文件">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="资源文件">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="sqlite">
+      <UniqueIdentifier>{193893d4-acdf-473d-816a-1c5a3c0fdadb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{ccda13b9-b2c5-443c-8263-60456a94b6b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="http">
+      <UniqueIdentifier>{a354ea3e-8d9e-44f2-a8ca-553b2ed789a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\search_main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\search_md5.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\search_parser.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\search_util.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\search_query.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\search_segment.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\search_doc_word.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="..\src\sqlite\CppSQLite3U.cpp">
+      <Filter>sqlite</Filter>
     </ClCompile>
     <ClCompile Include="..\src\search_crawl.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\search_index.cpp">
-      <Filter>源文件</Filter>
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\search_db.cpp">
-      <Filter>源文件</Filter>
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_doc_word.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_index.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_main.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_md5.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_parser.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_query.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_segment.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_util.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\search_http_server.cpp">
+      <Filter>http</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\search_md5.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\src\sqlite\CppSQLite3U.h">
+      <Filter>sqlite</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\search_parser.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\src\sqlite\sqlite3.h">
+      <Filter>sqlite</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\search_util.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\search_define.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\search_query.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\search_segment.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\search_doc_word.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="..\src\sqlite\sqlite3ext.h">
+      <Filter>sqlite</Filter>
     </ClInclude>
     <ClInclude Include="..\src\search_crawl.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\search_index.h">
-      <Filter>头文件</Filter>
+      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\search_db.h">
-      <Filter>头文件</Filter>
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_define.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_doc_word.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_index.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_md5.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_parser.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_query.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_segment.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_util.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\search_http_server.h">
+      <Filter>http</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
