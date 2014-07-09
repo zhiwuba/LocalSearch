@@ -314,7 +314,7 @@ int Search_Index_File::merge_doc_index(FILE* src_file, int pos_offset, FILE* des
 	writen_len+=file_write_buffer_with_head(dest_file,buffer2,len2);
 	
 	int len4=0;
-	char* buffer4=new char[4*pos_offset_vec.size()];
+	char* buffer4=new char[5*pos_offset_vec.size()];
 	regular_byte_encode(pos_offset_vec,(uchar*)buffer4,&len4);
 	writen_len+=file_write_buffer_with_head(dest_file,buffer4,len4);
 
@@ -410,7 +410,7 @@ int Search_Index_File::write_item_to_doc_index( FILE* file, std::vector<uint>& d
 	int     writen_len=0;
 	int     doc_count=doc_hits_vec.size();
 	int     buffer_len=0;
-	char* buffer=new char[doc_count*4];
+	char* buffer=new char[doc_count*5];
 	variable_byte_encode( doc_id_vec, (uchar*)buffer, &buffer_len);  //½ö¶Ôdoc_id Ñ¹Ëõ´æ´¢
 	int len=file_write_buffer_with_head(file,buffer, buffer_len);
 	if ( len<0 )
@@ -419,7 +419,7 @@ int Search_Index_File::write_item_to_doc_index( FILE* file, std::vector<uint>& d
 	}
 	writen_len+=len;
 	
-	memset(buffer,0, doc_count*4);
+	memset(buffer,0, doc_count*5);
 	regular_byte_encode( doc_hits_vec, (uchar*)buffer, &buffer_len);
 	len=file_write_buffer_with_head(file,buffer, buffer_len);
 	if ( len<0 )
@@ -428,7 +428,7 @@ int Search_Index_File::write_item_to_doc_index( FILE* file, std::vector<uint>& d
 	}
 	writen_len+=len;
 
-	memset(buffer,0,doc_count*4);
+	memset(buffer,0,doc_count*5);
 	regular_byte_encode(pos_offset_vec, (uchar*)buffer, &buffer_len );
 	len=file_write_buffer_with_head(file,buffer, buffer_len);
 	if ( len<0 )
@@ -507,7 +507,7 @@ int Search_Index_File::read_item_from_doc_index( FILE* file, char bitmap ,std::v
 int Search_Index_File::write_item_to_pos_index(FILE* file, std::vector<uint> poss)
 {
 	int buffer_len=0;
-	char* buffer=new char[poss.size()*4];
+	char* buffer=new char[poss.size()*5];
 	variable_byte_encode( poss, (uchar*)buffer, &buffer_len);
 	int len=file_write_buffer_with_head(file, buffer,buffer_len);
 	delete[] buffer;
@@ -627,10 +627,10 @@ int Search_Index_File_Manager::add_doc( DocumentIndex* doc )
 	m_temp_index_file->add_doc(doc);
 	m_doc_count++;
 
-	if ( m_doc_count%50==0 )
+	if (m_doc_count%200==0 )
 	{
 		save_index();
-	} 
+	}
 
 	return 0;
 }

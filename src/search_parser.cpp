@@ -6,7 +6,7 @@
 #include "search_segment.h"
 
 ////////////////////////////////////////////
-int Search_Parser::Parse( const char* filepath )
+int Search_Parser::parse_file( const char* filepath )
 {
 	char md5[33]={0};
 	uint doc_id=Search_MD5::get_file_md5_code(filepath,kMaxDocID);
@@ -15,7 +15,7 @@ int Search_Parser::Parse( const char* filepath )
 	if ( file!=NULL )
 	{
 		m_document=new DocumentIndex();
-		m_document->doc_file_path=filepath;
+		m_document->doc_path=filepath;
 		m_document->doc_id=doc_id;
 
 		uint word_count=0;
@@ -67,6 +67,45 @@ int Search_Parser::Parse( const char* filepath )
 	return 0;
 }
 
+int Search_Parser::parse_text(const char* identity , const char* body)
+{
+	uint doc_id=Search_MD5::get_buffer_md5_code(identity, strlen(identity), kMaxDocID);
+	
+	m_document=new DocumentIndex();
+	m_document->doc_path=identity;
+	m_document->doc_id=doc_id;
+	uint word_count=0;
+
+	std::vector<SegValue> words;
+	g_Segment.segment(body, strlen(body), words);
+
+	for ( int i=0; i<words.size(); i++ )
+	{
+		word_count++;
+		std::string cur_word=words[i].first;
+		uint word_id=Search_MD5::get_buffer_md5_code(cur_word.c_str(), cur_word.size(), kMaxWordID);
+		std::map<uint,Word*>::iterator iter2=m_document->words.find(word_id);
+		if ( iter2!=m_document->words.end() )
+		{
+			if ( iter2->second->word.compare(cur_word)!=0 )
+			{
+				printf("hash fighting. %s -- %s \n", (iter2->second)->word.c_str(), cur_word.c_str());
+			}
+			iter2->second->positions.push_back(words[i].second);
+		}
+		else
+		{
+			Word* word=new Word;
+			word->word_id=word_id;
+			word->word=cur_word;
+			word->positions.push_back(words[i].second);
+			m_document->words[word_id]=word;
+			g_WordId.add_word(word_id, cur_word);
+		}
+	}
+	g_DocId.add_document(doc_id , identity , word_count);
+	return 0;
+}
 
 
 int Search_Parser::get_next_word( const char* line, char* word,  int* length )

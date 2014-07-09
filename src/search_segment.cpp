@@ -31,13 +31,13 @@ int Search_Segment::init()
 	}
 
 	std::string core_path=get_core_path();
-	//std::string dict_path=core_path+"etc\\dict.utf8.xdb";
-	//std::string rule_path=core_path+"etc\\rules.utf8.ini";
-	//scws_set_charset(m_scws, "utf8");
+	std::string dict_path=core_path+"etc\\dict.utf8.xdb";
+	std::string rule_path=core_path+"etc\\rules.utf8.ini";
+	scws_set_charset(m_scws, "utf8");
 
-	std::string dict_path=core_path+"etc\\dict.xdb";
-	std::string rule_path=core_path+"etc\\rules.ini";
-	scws_set_charset(m_scws, "gbk");
+	//std::string dict_path=core_path+"etc\\dict.xdb";
+	//std::string rule_path=core_path+"etc\\rules.ini";
+	//scws_set_charset(m_scws, "gbk");
 
 	int ret=scws_set_dict(m_scws, dict_path.c_str(), SCWS_XDICT_XDB);
 	if ( ret!=0 )
@@ -63,7 +63,7 @@ int Search_Segment::segment(const char* text, int length, std::vector<SegValue>&
 			std::string word;
 			word.assign(text+cur->off, cur->len);
 			results.push_back( std::make_pair(word, cur->off) );
-			printf("WORD: %.*s/%s (IDF = %4.2f)\n", cur->len, text+cur->off, cur->attr, cur->idf);
+			//printf("WORD: %.*s/%s (IDF = %4.2f)\n", cur->len, text+cur->off, cur->attr, cur->idf);
 			cur = cur->next;
 		}
 		scws_free_result(res);

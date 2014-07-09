@@ -3,13 +3,10 @@
 #include <numeric>
 #include <iostream>
 
-
 #include "search_query.h"
 #include "search_index.h"
 #include "search_segment.h"
 #include "search_md5.h"
-
-
 
 class PairVecPlusFunc
 {
@@ -40,7 +37,7 @@ Search_Query::~Search_Query()
 
 }
 
-int Search_Query::query( std::string question )
+int Search_Query::query( std::string question, std::vector<std::string>& answer )
 {
 	PairVec query_vec;
 	build_query_vec(question, query_vec);
@@ -70,7 +67,9 @@ int Search_Query::query( std::string question )
 	
 	for ( uint i=0; i< result_vec.size(); ++i )
 	{
-		std::cout<<i<<" : "<<g_DocId.get_doc_path(result_vec[i].first)<<std::endl;
+		char buffer[100];
+		sprintf(buffer, "%d : %s", i , g_DocId.get_doc_path(result_vec[i].first).c_str());
+		answer.push_back(buffer);
 	}
 
 	return 0;

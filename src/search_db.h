@@ -19,7 +19,7 @@
 /* key/value type */
 typedef void*  value_t;
 
-typedef int  key_t;
+typedef uint  key_t;
 
 
 inline int keycmp(const key_t &a, const key_t &b) {

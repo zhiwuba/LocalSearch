@@ -21,7 +21,8 @@ public:
 	}
 	~Search_Parser(){};
 
-	int Parse(const char* filepath);
+	int parse_file(const char* filepath);
+	int parse_text(const char* identity , const char* body);
 	DocumentIndex* get_document(){ return m_document;};
 
 protected:

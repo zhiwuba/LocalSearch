@@ -15,6 +15,8 @@
 #include "search_define.h"
 #include "search_db.h"
 
+#define USE_DB 0
+
 struct Word
 {
 	uint  word_id;
@@ -26,7 +28,7 @@ struct DocumentIndex
 {
 	uint  doc_id;
 	uint  word_count;
-	std::string doc_file_path;
+	std::string doc_path;
 	std::map<uint,Word*> words;  //word_id<---->Word
 };
 
@@ -34,8 +36,6 @@ struct DocumentIndex
 struct WordIndex
 {
 	uint word_id;
-	std::string word;
-
 	std::map<uint, Word*> documents;  //doc_id <--->Word
 };
 
@@ -60,7 +60,12 @@ protected:
 
 private:
 	Search_WordId();
+
+#if USE_DB
 	Search_DB*   m_word_db;
+#else
+	std::map<uint, std::string> word_db_;
+#endif
 };
 
 #define g_DocId Search_DocID::instance()
@@ -75,7 +80,7 @@ public:
 
 	~Search_DocID();
 
-	bool  add_document(uint doc_id, std::string file_path, uint word_count);
+	bool  add_document(uint doc_id, std::string doc_path, uint word_count);
 	std::string get_doc_path(uint doc_id);
 	uint          get_doc_total_word_count(uint doc_id);
 	uint64_t    get_doc_count(){return m_docs_count;};
@@ -91,7 +96,12 @@ private:
 	Search_DocID();
 
 	uint64_t       m_docs_count;
+
+#if USE_DB
 	Search_DB*  m_docs_db;
+#else
+	std::map<uint, std::pair<std::string, uint>> docs_db_;
+#endif
 };
 
 #endif

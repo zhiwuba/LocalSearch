@@ -19,7 +19,7 @@ public:
 
 	~Search_Query();
 
-	int query(std::string question);
+	int query(std::string question, std::vector<std::string>& answer);
 
 private:
 	Search_Query();

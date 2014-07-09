@@ -695,7 +695,7 @@ int Search_DB::unmap( leaf_node_t* block, off_t offset )
 	{
 		fwrite((char*)&block->children[i].key,1,4, fp);
 		fwrite(block->children[i].value, 1, meta.value_size, fp);
-		delete[] block->children[i].value;
+		//delete block->children[i].value;
 	}
 	int  write_len=16+BP_ORDER*(4+meta.value_size);
 
