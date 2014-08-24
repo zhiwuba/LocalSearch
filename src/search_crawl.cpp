@@ -8,11 +8,14 @@
 #else
 #endif
 #include "sqlite/CppSQLite3U.h"
+#include "pugixml/pugixml.hpp"
+#include "mysql/mysql.h"
 
 #include "search_crawl.h"
 #include "search_parser.h"
 #include "search_index.h"
 
+using namespace pugi;
 
 Search_Crawl::Search_Crawl()
 {
@@ -22,6 +25,113 @@ Search_Crawl::Search_Crawl()
 Search_Crawl::~Search_Crawl()
 {
 
+}
+
+
+int Search_Crawl::initialize()
+{
+	int ret=load_config();
+	if( ret!=0 )
+	{
+		printf("Search_Crawl::initialize load_config error.\n");
+		return -1;
+	}
+
+
+
+	return 0;
+}
+
+int Search_Crawl::load_config()
+{
+	std::string config_file_path=get_core_path()+kConfigFile;
+	pugi::xml_document doc;
+	xml_parse_result result=doc.load_file(config_file_path.c_str());
+	if ( result.status!=status_ok )
+	{
+		printf("load xml file error! \n");
+		return -1;
+	}
+
+	const char* query_path="/dbs";
+	xpath_node_set seed_set=doc.select_nodes(query_path);
+	for ( pugi::xpath_node_set::const_iterator iter=seed_set.begin(); iter!=seed_set.end(); ++iter )
+	{
+		pugi::xml_node dnode=iter->node();
+		if ( dnode )
+		{
+			m_db_config.db_name=dnode.attribute("name").as_string();
+			m_db_config.db_type=dnode.attribute("type").as_string();
+			m_db_config.db_host=dnode.attribute("host").as_string();
+			m_db_config.db_port=dnode.attribute("host").as_int();
+			m_db_config.db_user=dnode.attribute("host").as_string();
+			m_db_config.db_password=dnode.attribute("host").as_string();
+
+			xpath_node_set table_set=dnode.select_nodes("table");
+			for ( pugi::xpath_node_set::const_iterator iter2=table_set.begin(); iter2!=table_set.end(); ++iter2 )
+			{
+				DB_Config::Table table;
+				pugi::xml_node tnode=iter->node();
+				if( tnode )
+				{
+					table.tb_name=tnode.attribute("name").as_string();
+					table.tb_id= tnode.attribute("id").as_string();
+					xpath_node_set field_set=tnode.select_nodes("field");
+					for ( pugi::xpath_node_set::const_iterator iter3=field_set.begin(); iter3!=field_set.end(); ++iter3 )
+					{
+						pugi::xml_node fnode=iter->node();
+						table.tb_fields.push_back(fnode.attribute("name").as_string());
+					}
+				}
+				m_db_config.db_tables.push_back(table);
+			}
+		}
+	}
+	return 0;
+}
+
+int Search_Crawl::traverse_mysql()
+{
+	MYSQL* res=mysql_real_connect(&m_mysql, 
+		m_db_config.db_host.c_str(),
+		m_db_config.db_user.c_str(),
+		m_db_config.db_password.c_str(),
+		m_db_config.db_name.c_str(),
+		m_db_config.db_port,NULL,0);
+	if ( res==NULL )
+	{
+		printf("mysql: connect server error!! \n");
+		return -1;
+	}
+
+	for (int i = 0; i < m_db_config.db_tables.size() ; i++)
+	{   //遍历每个表
+		std::string sql;
+		for ( int j=0; j<m_db_config.db_tables[i].tb_fields.size(); j++ )
+		{
+			sql+=",";
+			sql+=m_db_config.db_tables[i].tb_fields[i];
+		}
+		sql="select "+ m_db_config.db_tables[i].tb_id + sql +" from " + m_db_config.db_tables[i].tb_name;
+
+		int ret=mysql_real_query(&m_mysql, sql.c_str(), sql.length());
+		if( ret!=0 )
+		{
+			printf("mysql query error! \n");
+			return -1;
+		}
+
+		MYSQL_ROW row;
+		MYSQL_RES* result=mysql_store_result(&m_mysql);
+		while (row=mysql_fetch_row(result))
+		{
+
+
+		}
+	}
+
+
+	return 0;
 }
 
 int Search_Crawl::traverse_directory( const char* directory )
@@ -76,7 +186,7 @@ int Search_Crawl::traverse_sqllite(const char* db_path)
 	db.open(db_path);
 
 	const int tables_size=5;
-
+	
 	const char* apks_items[]={"soft_name","soft_brief","pname", NULL};
 	const char* cartoon_items[]={"name", "director", "starring", "info","other_name", NULL };
 	const char* movies_items[]={"name", "director", "starring", "info", "other_name", NULL};
@@ -125,5 +235,9 @@ int Search_Crawl::traverse_sqllite(const char* db_path)
 	db.close();
 	return 0;
 }
+
+
+
+
 
 

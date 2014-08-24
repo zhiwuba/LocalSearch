@@ -11,4 +11,6 @@ typedef unsigned char uchar;
 
 typedef unsigned __int64  uint64_t;
 
+const char* kConfigFile="db.xml";
+
 #endif
