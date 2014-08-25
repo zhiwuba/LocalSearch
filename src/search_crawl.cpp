@@ -123,9 +123,13 @@ int Search_Crawl::traverse_mysql()
 
 		MYSQL_ROW row;
 		MYSQL_RES* result=mysql_store_result(&m_mysql);
+		int field_count=mysql_num_fields(result);
 		while (row=mysql_fetch_row(result))
 		{
-
+			for ( int i=0; i<field_count-1; i++ )
+			{
+				row[i];
+			}
 
 		}
 	}
