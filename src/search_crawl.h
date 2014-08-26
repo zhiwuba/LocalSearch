@@ -3,6 +3,25 @@
 
 #define g_Crawl Search_Crawl::instance()
 
+struct DB_Config 
+{
+	std::string db_type;   //mysql sqlite
+	std::string db_name;
+	std::string db_host;
+	std::string db_user;
+	std::string db_password;
+	int            db_port;
+
+	struct Table
+	{
+		std::string tb_name;
+		std::string tb_id;
+		std::vector<std::string> tb_fields;
+	};
+
+	std::vector<Table> db_tables;
+};
+
 class Search_Crawl
 {
 public:
@@ -13,11 +32,20 @@ public:
 	}
 	~Search_Crawl();
 
-	int traverse_directory( const char* directory );
-	int traverse_sqllite(const char* db_path);
+	int initialize();
+		
+
 
 private:
 	Search_Crawl();
+
+	int load_config();
+	int traverse_mysql();
+	int traverse_sqllite(const char* db_path);
+	int traverse_directory( const char* directory );
+
+	MYSQL  m_mysql;
+	DB_Config  m_db_config;  //暂时 只读取一个数据库
 };
 
 

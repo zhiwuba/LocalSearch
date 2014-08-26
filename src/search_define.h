@@ -10,4 +10,6 @@ typedef unsigned int  uint;
 typedef unsigned char uchar;
 
 
+const char* kConfigFile="db.xml";
+
 #endif
