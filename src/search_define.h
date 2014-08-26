@@ -9,6 +9,5 @@ const int kMaxWordLen=100;  //单词最长100字节
 typedef unsigned int  uint;
 typedef unsigned char uchar;
 
-typedef unsigned __int64  uint64_t;
 
 #endif

@@ -72,7 +72,7 @@ std::string Search_DocID::get_doc_path( uint doc_id )
 	m_docs_db->search(doc_id, (void*)&table);
 	return table.path;
 #else
-	std::map<uint, std::pair<std::string, uint>>::iterator iter=docs_db_.find(doc_id);
+	std::map<uint, std::pair<std::string, uint> >::iterator iter=docs_db_.find(doc_id);
 	if( iter!=docs_db_.end() )
 	{
 		return iter->second.first;
@@ -102,7 +102,7 @@ uint Search_DocID::get_doc_total_word_count( uint doc_id )
 	m_docs_db->search(doc_id, (void*)&table);
 	return table.word_count;
 #else
-	std::map<uint, std::pair<std::string, uint>>::iterator iter=docs_db_.find(doc_id);
+	std::map<uint, std::pair<std::string, uint> >::iterator iter=docs_db_.find(doc_id);
 	if( iter!=docs_db_.end() )
 	{
 		return iter->second.second;

@@ -9,11 +9,11 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <hash_map>
 #include <list>
 
 #include "search_define.h"
-#include "search_db.h"
+#include "search_porting.h"
+//#include "search_db.h"
 
 #define USE_DB 0
 
@@ -100,7 +100,7 @@ private:
 #if USE_DB
 	Search_DB*  m_docs_db;
 #else
-	std::map<uint, std::pair<std::string, uint>> docs_db_;
+	std::map<uint, std::pair<std::string, uint> > docs_db_;
 #endif
 };
 

@@ -1,7 +1,9 @@
 #include <math.h>
 #include <assert.h>
 #include <algorithm>
+#include "search_porting.h"
 #include "search_index.h"
+
 
 /*-----------------------------------------------------------
 **  term_index_struct
@@ -44,9 +46,9 @@ int Search_Index_File::load_word_index()
 			TermIndexItem data;
 			data.doc_count=atoi(++p);
 			while (*p!='#')++p;
-			data.start_offset=_atoi64(++p);
+			data.start_offset=atoi64(++p);
 			while(*p!='#')++p;
-			data.end_offset=_atoi64(++p);
+			data.end_offset=atoi64(++p);
 
 			m_word_pos[word_id]=data;
 		}

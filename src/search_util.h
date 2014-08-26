@@ -1,11 +1,9 @@
 #pragma once
 
 #include <string>
-#include <hash_map>
+#include <vector>
+#include "search_porting.h"
 #include "search_define.h"
-
-
-typedef std::hash_map<std::string, int>  StringIntHashMap;
 
 
 bool is_alpha_char(char c);

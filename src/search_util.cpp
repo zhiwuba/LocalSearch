@@ -1,8 +1,14 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <assert.h>
-#include <io.h>
+
+
 #ifdef WIN32
+#include <io.h>
 #include <windows.h>
 #endif // WIN32
+
 #include "search_util.h"
 
 bool is_alpha_char( char c )
@@ -147,7 +153,7 @@ std::string get_core_path()
 int move_file( const char* src_file, const char* dest_file )
 {
 	assert(dest_file!=NULL&&src_file!=NULL);
-	if (0==_access(dest_file, 0))
+	if (0==access(dest_file, 0))
 	{  //先删除 目的文件
 		remove(dest_file);
 	}
@@ -158,7 +164,7 @@ int move_file( const char* src_file, const char* dest_file )
 int create_file_if_nonexist( const char* path )
 {
 	assert(path!=NULL);
-	if ( -1==_access(path,0) )
+	if ( -1==access(path,0) )
 	{
 		FILE* file=fopen(path,"w");
 		fclose(file);
@@ -169,7 +175,7 @@ int create_file_if_nonexist( const char* path )
 int truncate_file( const char* path )
 {
 	assert(path!=NULL);
-	if ( 0==_access(path,0) )
+	if ( 0==access(path,0) )
 	{  //destory file
 		FILE* file=fopen(path,"w");
 		fclose(file);
