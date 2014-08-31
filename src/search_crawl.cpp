@@ -3,10 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <iostream>
-#ifdef WIN32
-#include <windows.h>
-#else
-#endif
+
 #include "pugixml/pugixml.hpp"
 
 #include "search_crawl.h"
@@ -136,6 +133,7 @@ int Search_Crawl::traverse_mysql()
 	return 0;
 }
 
+/*
 int Search_Crawl::traverse_directory( const char* directory )
 {
 #ifdef  WIN32
@@ -181,6 +179,7 @@ int Search_Crawl::traverse_directory( const char* directory )
 
 	return 0;
 }
+*/
 
 /*
 int Search_Crawl::traverse_sqllite(const char* db_path)

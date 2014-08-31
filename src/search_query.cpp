@@ -20,7 +20,7 @@ public:
 class QuerySort
 {
 public:
-	bool operator()( QueryPair& v1, QueryPair& v2 )
+	bool operator()(const QueryPair& v1, const QueryPair& v2 )
 	{
 		return v1.second>v2.second;
 	}

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include "search_porting.h"
 #include "mysql/mysql.h"
 
 #define g_Crawl Search_Crawl::instance()
@@ -45,8 +46,6 @@ private:
 
 	int load_config();
 	int traverse_mysql();
-	int traverse_sqllite(const char* db_path);
-	int traverse_directory( const char* directory );
 
 	MYSQL  m_mysql;
 	DB_Config  m_db_config;  //暂时 只读取一个数据库

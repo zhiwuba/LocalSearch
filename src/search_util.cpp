@@ -6,7 +6,6 @@
 
 #ifdef WIN32
 #include <io.h>
-#include <windows.h>
 #endif // WIN32
 
 #include "search_util.h"
@@ -136,19 +135,7 @@ void regular_byte_decode( uchar* buffer, int len, std::vector<uint>& arrays )
 	}
 }
 
-std::string get_core_path()
-{
-	std::string core_path;
-#ifdef WIN32
-	CHAR path[MAX_PATH+1] = {0};
-	GetModuleFileName(NULL, path, MAX_PATH);
-	//WideCharToMultiByte(CP_ACP,0,path,MAX_PATH,cstr_path, MAX_PATH, NULL, 0);
-	core_path = path;
-	core_path=core_path.substr(0, core_path.find_last_of('\\')+1);
-#else
-#endif
-	return core_path;
-}
+
 
 int move_file( const char* src_file, const char* dest_file )
 {

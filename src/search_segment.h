@@ -1,8 +1,8 @@
 #ifndef  __SEARCH_DEVIDE_WORD_H__
 #define __SEARCH_DEVIDE_WORD_H__
 
-#include "libscws/scws.h"
-#include "libscws/xdict.h"
+#include "scws/scws.h"
+#include "scws/xdict.h"
 
 #include "search_define.h"
 

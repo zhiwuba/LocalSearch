@@ -28,7 +28,7 @@ int main()
 
 #if 1
 	long startTime=GetTickCount();
-	g_Crawl.traverse_sqllite("D:\\Git\\LocalSearch\\msvc\\apks.sqlite");
+	g_Crawl.initialize();
 	long costTime=GetTickCount()-startTime;
 	printf("build index cost time : %d \n", costTime);
 

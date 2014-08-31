@@ -2,24 +2,7 @@
 #define __SEARCH_HTTP_SERVER_H__
 
 #include <string>
-#ifdef WIN32
-#include <process.h>
-#include <Winsock2.h>
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <sys/time.h>
-#include <unistd.h>
-
-#define SOCKET int
-#define SOCKET_ERROR -1
-#define INVALID_SOCKET -1
-#define SD_BOTH SHUT_RDWR  
-#define IPPROTO_TCP  0
-
-#define closesocket close
-#endif // WIN32
+#include "search_porting.h"
 
 #define  g_HttpServer Search_HttpServer::instance()
 
@@ -38,7 +21,11 @@ public:
 
 private:
 	Search_HttpServer();
+#ifdef WIN32
 	static unsigned int __stdcall http_server_thread(void* param);
+#else
+	static void* http_server_thread(void* param);
+#endif
 	int http_server_thread_aid();
 	
 	int search_words(std::string quetion, std::string& answer);
@@ -49,7 +36,7 @@ private:
 	std::string url_decode(std::string source_url);
 	int  char_to_dec(char c);
 
-	int          m_thread_handle;
+	handle_thread m_thread_handle;
 	SOCKET  m_listen_socket;
 	bool       m_exit;
 };

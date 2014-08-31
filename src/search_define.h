@@ -9,7 +9,6 @@ const int kMaxWordLen=100;  //单词最长100字节
 typedef unsigned int  uint;
 typedef unsigned char uchar;
 
-
-const char* kConfigFile="db.xml";
+static const char* kConfigFile="db.xml";
 
 #endif

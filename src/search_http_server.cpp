@@ -92,7 +92,7 @@ int Search_HttpServer::start_server( int port )
 	}
 
 	unsigned int thread_id;
-	m_thread_handle=_beginthreadex(NULL,0, &http_server_thread, (void*)this, 0, &thread_id );
+	m_thread_handle=thread_create(NULL,0, (THREAD_FUN)&http_server_thread, (void*)this, 0, &thread_id );
 
 	return 0;
 }
@@ -112,7 +112,7 @@ int Search_HttpServer::http_server_thread_aid()
 		int client_socket=accept(m_listen_socket, NULL,NULL);
 		if ( INVALID_SOCKET==client_socket )
 		{
-			printf("Accept error in http_server_thread_aid.  %d \n", WSAGetLastError());
+			printf("Accept error in http_server_thread_aid.  %d \n", lasterror);
 			continue;
 		}
 		
@@ -130,10 +130,20 @@ int Search_HttpServer::http_server_thread_aid()
 	}
 	return 0;
 }
+
+#ifdef WIN32
 unsigned int Search_HttpServer::http_server_thread(void* param)
+#else
+void* Search_HttpServer::http_server_thread(void* param)
+#endif
 {
 	Search_HttpServer* pthis=(Search_HttpServer*)param;
+#ifdef WIN32
 	return pthis->http_server_thread_aid();
+#else
+	pthis->http_server_thread_aid();
+	return NULL;
+#endif
 }
 
 int Search_HttpServer::recv_request(int sock, std::string& question)
