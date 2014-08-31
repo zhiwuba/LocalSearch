@@ -7,9 +7,7 @@
 #include <windows.h>
 #else
 #endif
-#include "sqlite/CppSQLite3U.h"
 #include "pugixml/pugixml.hpp"
-#include "mysql/mysql.h"
 
 #include "search_crawl.h"
 #include "search_parser.h"
@@ -184,6 +182,7 @@ int Search_Crawl::traverse_directory( const char* directory )
 	return 0;
 }
 
+/*
 int Search_Crawl::traverse_sqllite(const char* db_path)
 {
 	CppSQLite3DB db;
@@ -239,7 +238,7 @@ int Search_Crawl::traverse_sqllite(const char* db_path)
 	db.close();
 	return 0;
 }
-
+*/
 
 
 

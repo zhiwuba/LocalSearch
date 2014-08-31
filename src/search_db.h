@@ -19,8 +19,9 @@
 /* key/value type */
 typedef void*  value_t;
 
+#ifdef WIN32
 typedef uint  key_t;
-
+#endif
 
 inline int keycmp(const key_t &a, const key_t &b) {
 	return a-b;

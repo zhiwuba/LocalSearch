@@ -1,14 +1,24 @@
 DIR_SRC=./
-DIR_OBJ=./obj
-DIR_BIN=./bin
-
-CPPS=$(wildcard *.cpp)
-OBJS=$(patsubst %.cpp,${DIR_OBJ}/%.o,$(notdir ${CPPS}))
+TARGET=search
 
 
-all:
-	g++ $(CPPS) -o $(OBJS)
+CPPS=$(wildcard $(DIR_SRC)*.cpp)
+CPPS+=$(wildcard $(DIR_SRC)/pugixml/*.cpp)
+OBJS=$(patsubst %.cpp,%.o,$(CPPS))
+
+CFLAGS=-O 
+
+CC=g++
+LIB=
+
+all:$(TARGET)
+$(TARGET):$(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) $(LIB) -o $(TARGET) 
+
+$(OBJS):%.o:%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm *.o
+	rm $(OBJS) $(TARGET)
+
 

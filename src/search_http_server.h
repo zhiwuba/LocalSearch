@@ -5,6 +5,20 @@
 #ifdef WIN32
 #include <process.h>
 #include <Winsock2.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <unistd.h>
+
+#define SOCKET int
+#define SOCKET_ERROR -1
+#define INVALID_SOCKET -1
+#define SD_BOTH SHUT_RDWR  
+#define IPPROTO_TCP  0
+
+#define closesocket close
 #endif // WIN32
 
 #define  g_HttpServer Search_HttpServer::instance()

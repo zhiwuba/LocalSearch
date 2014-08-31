@@ -14,9 +14,7 @@ typedef unsigned __int64  uint64_t;
 
 #else
 #include <unistd.h>
-
-typedef unsigned long long  uint64_t;
-
+#include <stdint.h>
 #define atoi64 atoll
 
 #endif

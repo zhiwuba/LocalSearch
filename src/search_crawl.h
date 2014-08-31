@@ -1,6 +1,10 @@
 #ifndef  __SEARCH_CRAWL_H__
 #define __SEARCH_CRAWL_H__
 
+#include <vector>
+#include <string>
+#include "mysql/mysql.h"
+
 #define g_Crawl Search_Crawl::instance()
 
 struct DB_Config 
